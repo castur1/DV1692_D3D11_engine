@@ -61,6 +61,10 @@ bool Window::ShouldClose() {
     return this->shouldClose;
 }
 
+HWND Window::GetHandle() const {
+    return this->hWnd;
+}
+
 LRESULT CALLBACK Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     Window *window{};
     if (uMsg == WM_CREATE) {

@@ -19,7 +19,7 @@ bool Application::Initialize() {
     if (!this->window.Initialize(1280, 720, L"Hello, World!"))
         return false;
     
-    if (!this->renderer.Initialize())
+    if (!this->renderer.Initialize(this->window.GetHandle()))
         return false;
 
     LogInfo("Intialization successful!\n");
@@ -41,10 +41,8 @@ void Application::Run() {
 }
 
 bool Application::CreateConsole() {
-    if (!AllocConsole()) {
-        LogError("Failed to create the console\n");
+    if (!AllocConsole())
         return false;
-    }
 
     FILE *file;
     freopen_s(&file, "CONOUT$", "w", stdout);
@@ -55,4 +53,8 @@ bool Application::CreateConsole() {
 
 void Application::Update() {}
 
-void Application::Render() {}
+void Application::Render() {
+    this->renderer.Begin();
+
+    this->renderer.End();
+}

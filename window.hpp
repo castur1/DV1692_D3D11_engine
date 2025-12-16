@@ -18,6 +18,7 @@ public:
     bool Initialize(int width, int height, const wchar_t *title);
     void ProcessMessages();
     bool ShouldClose();
+    HWND GetHandle() const;
 };
 
 #endif
