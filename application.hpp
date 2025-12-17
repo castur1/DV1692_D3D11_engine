@@ -3,10 +3,12 @@
 
 #include "window.hpp"
 #include "renderer.hpp"
+#include "scene_manager.hpp"
 
 class Application {
     Window window;
     Renderer renderer;
+    SceneManager sceneManager;
 
     bool CreateConsole();
 

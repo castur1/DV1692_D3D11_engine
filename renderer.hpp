@@ -25,6 +25,9 @@ public:
     ~Renderer();
 
     bool Initialize(HWND hWnd);
+
+    void Submit();
+    void Flush();
     void Begin();
     void End();
 };

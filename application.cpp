@@ -8,6 +8,31 @@ Application::Application() {}
 
 Application::~Application() {}
 
+bool Application::CreateConsole() {
+    if (!AllocConsole())
+        return false;
+
+    FILE *file;
+    freopen_s(&file, "CONOUT$", "w", stdout);
+    freopen_s(&file, "CONIN$", "r", stdin);
+
+    return true;
+}
+
+void Application::Update() {
+    // TODO: deltaTime
+    this->sceneManager.Update(0.01667f);
+}
+
+void Application::Render() {
+    this->renderer.Begin();
+
+    this->sceneManager.Render(&this->renderer);
+    this->renderer.Flush();
+
+    this->renderer.End();
+}
+
 bool Application::Initialize() {
 #ifdef _DEBUG
     if (!this->CreateConsole())
@@ -38,23 +63,4 @@ void Application::Run() {
     }
 
     LogInfo("Shutdown...\n");
-}
-
-bool Application::CreateConsole() {
-    if (!AllocConsole())
-        return false;
-
-    FILE *file;
-    freopen_s(&file, "CONOUT$", "w", stdout);
-    freopen_s(&file, "CONIN$", "r", stdin);
-
-    return true;
-}
-
-void Application::Update() {}
-
-void Application::Render() {
-    this->renderer.Begin();
-
-    this->renderer.End();
 }

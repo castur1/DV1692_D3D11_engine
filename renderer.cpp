@@ -179,9 +179,19 @@ bool Renderer::Initialize(HWND hWnd) {
     return true;
 }
 
+void Renderer::Submit() {
+
+}
+
+void Renderer::Flush() {
+
+}
+
 void Renderer::Begin() {
     this->deviceContext->ClearRenderTargetView(this->renderTargetView, this->clearColour);
     this->deviceContext->ClearDepthStencilView(this->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+    this->deviceContext->RSSetViewports(1, &this->viewport);
 }
 
 void Renderer::End() {
