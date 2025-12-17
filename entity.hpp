@@ -14,6 +14,12 @@ public:
     Entity();
     ~Entity();
 
+    template<typename T, typename... Args>
+    T *AddComponent(Args&&... args) {
+        this->components.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
+        return static_cast<T *>(this->components.back().get());
+    }
+
     void Update(float deltaTime);
     void Render(Renderer *renderer);
 };

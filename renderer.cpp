@@ -1,5 +1,7 @@
 #include "renderer.hpp"
 #include "logging.hpp"
+#include "mesh_data.hpp"
+#include "material.hpp"
 
 #define SafeRelease(obj) do { if (obj) obj->Release(); } while (0)
 
@@ -179,21 +181,40 @@ bool Renderer::Initialize(HWND hWnd) {
     return true;
 }
 
-void Renderer::Submit() {
-
+void Renderer::Submit(const Draw_command &command) {
+    this->drawCommands.push_back(command);
 }
 
 void Renderer::Flush() {
+    for (const Draw_command &command : this->drawCommands) {
+        command.material->Bind(this->deviceContext);
 
+        UINT stride = sizeof(Vertex);
+        UINT offset = 0;
+        ID3D11Buffer *vertexBuffer = command.mesh->GetVertexBuffer();
+
+        this->deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+        this->deviceContext->IASetIndexBuffer(command.mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+        this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        this->deviceContext->DrawIndexed(command.mesh->GetIndexCount(), 0, 0);
+    }
+
+    this->drawCommands.clear();
 }
 
 void Renderer::Begin() {
     this->deviceContext->ClearRenderTargetView(this->renderTargetView, this->clearColour);
     this->deviceContext->ClearDepthStencilView(this->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+    this->deviceContext->OMSetRenderTargets(1, &this->renderTargetView, this->depthStencilView);
     this->deviceContext->RSSetViewports(1, &this->viewport);
 }
 
 void Renderer::End() {
     this->swapChain->Present(0, 0);
+}
+
+ID3D11Device *Renderer::GetDevice() const {
+    return this->device;
 }

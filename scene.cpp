@@ -5,6 +5,11 @@ Scene::Scene() {}
 
 Scene::~Scene() {}
 
+Entity *Scene::AddEntity() {
+    this->entities.emplace_back(std::make_unique<Entity>());
+    return this->entities.back().get();
+}
+
 void Scene::Update(float deltaTime) {
     for (auto &entity : this->entities)
         entity->Update(deltaTime);

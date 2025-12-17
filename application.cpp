@@ -47,6 +47,8 @@ bool Application::Initialize() {
     if (!this->renderer.Initialize(this->window.GetHandle()))
         return false;
 
+    this->sceneManager.Initialize(&this->renderer);
+
     LogInfo("Intialization successful!\n");
 
     return true;
