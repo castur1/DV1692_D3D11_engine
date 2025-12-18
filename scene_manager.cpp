@@ -53,6 +53,10 @@ void SceneManager::CreateScenes(Renderer *renderer) {
     entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
 
     entity = scene->AddEntity();
+    entity->AddComponent<Transform>(XMFLOAT3(0, 0.5f, 0.5f), XMFLOAT3(XM_PI / 2, 0, 0), XMFLOAT3(1, 1, 1));
+    entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
+
+    entity = scene->AddEntity();
     entity->AddComponent<Transform>(XMFLOAT3(0.0f, 0.0f, -5.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
     entity->AddComponent<CameraController>(renderer);
 }

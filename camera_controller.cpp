@@ -30,18 +30,29 @@ void CameraController::Update(float deltaTime) {
     XMFLOAT3 position = transform->GetPosition();
     XMFLOAT3 rotation = transform->GetRotation();
 
+    float &pitch = rotation.x;
+    float &yaw = rotation.y;
+    float &roll = rotation.z;
+
     float rotationSpeed = this->rotationSpeed * deltaTime;
 
     if (Input::IsKeyDown(VK_RIGHT))
-        rotation.y += rotationSpeed;
+        yaw += rotationSpeed;
     if (Input::IsKeyDown(VK_LEFT))
-        rotation.y -= rotationSpeed;
+        yaw -= rotationSpeed;
     if (Input::IsKeyDown(VK_UP))
-        rotation.x -= rotationSpeed;
+        pitch -= rotationSpeed;
     if (Input::IsKeyDown(VK_DOWN))
-        rotation.x += rotationSpeed;
+        pitch += rotationSpeed;
 
-    XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z); // Basis vectors form the rows!
+    pitch = XMMax(-XM_PIDIV2 + 0.001f, XMMin(XM_PIDIV2 - 0.001f, pitch));
+
+    while (yaw >= XM_2PI)
+        yaw -= XM_2PI;
+    while (yaw < 0.0f)
+        yaw += XM_2PI;
+
+    XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll); // Basis vectors form the rows!
 
     XMVECTOR right = rotationMatrix.r[0];
     XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
