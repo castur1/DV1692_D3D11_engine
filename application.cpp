@@ -64,6 +64,9 @@ void Application::Run() {
     while (!this->window.ShouldClose()) {
         this->window.ProcessMessages();
 
+        if (Input::IsKeyPressed(VK_ESCAPE))
+            break;
+
         auto currentTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float> elapsed = currentTime - previousTime;
         previousTime = currentTime;
