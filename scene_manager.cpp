@@ -42,6 +42,14 @@ void SceneManager::CreateScenes(Renderer *renderer) {
     Entity *entity = scene->AddEntity();
     entity->AddComponent<Transform>();
     entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
+
+    entity = scene->AddEntity();
+    entity->AddComponent<Transform>(XMFLOAT3(-0.5f, 0, 0.5f), XMFLOAT3(0, XM_PI / 2, 0), XMFLOAT3(1, 1, 1));
+    entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
+
+    entity = scene->AddEntity();
+    entity->AddComponent<Transform>(XMFLOAT3(0.5f, 0, 0.5f), XMFLOAT3(0, 3 * XM_PI / 2, 0), XMFLOAT3(1, 1, 1));
+    entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
 }
 
 void SceneManager::ChangeScene(const std::string &name) {
@@ -75,6 +83,8 @@ void SceneManager::Initialize(Renderer *renderer) {
     renderer->SetProjectionMatrix(projectionMatrix);
 }
 
+float TEST_dt = 0.0f;
+
 void SceneManager::Update(float deltaTime) {
     if (this->targetSceneName != this->currentSceneName)
         this->ChangeScene(this->targetSceneName);
@@ -85,6 +95,8 @@ void SceneManager::Update(float deltaTime) {
     }
 
     this->currentScene->Update(deltaTime);
+
+    TEST_dt = deltaTime;
 }
 
 void SceneManager::Render(Renderer *renderer) {
@@ -94,12 +106,12 @@ void SceneManager::Render(Renderer *renderer) {
     }
     
     static float x = -5.0f;
-    static float delta = 0.001;
+    static float delta = 5.0f;
 
     if (x < -5.0f || x > 5.0)
         delta = -delta;
 
-    x += delta;
+    x += delta * TEST_dt;
 
     XMVECTOR eyePosition = XMVectorSet(x, 0.0f, -5.0f, 1.0f);
     XMVECTOR focusPosition = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);

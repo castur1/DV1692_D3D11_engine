@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <stdio.h>
+#include <chrono>
 
 #include "application.hpp"
 #include "logging.hpp"
@@ -19,9 +20,8 @@ bool Application::CreateConsole() {
     return true;
 }
 
-void Application::Update() {
-    // TODO: deltaTime
-    this->sceneManager.Update(0.01667f);
+void Application::Update(float deltaTime) {
+    this->sceneManager.Update(deltaTime);
 }
 
 void Application::Render() {
@@ -57,10 +57,18 @@ bool Application::Initialize() {
 void Application::Run() {
     LogInfo("Running...\n");
 
+    auto previousTime = std::chrono::high_resolution_clock::now();
+
     while (!this->window.ShouldClose()) {
         this->window.ProcessMessages();
 
-        this->Update();
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<float> elapsed = currentTime - previousTime;
+        previousTime = currentTime;
+
+        float deltaTime = elapsed.count();
+
+        this->Update(deltaTime);
         this->Render();
     }
 

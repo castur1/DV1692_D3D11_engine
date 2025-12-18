@@ -12,7 +12,7 @@ class Application {
 
     bool CreateConsole();
 
-    void Update();
+    void Update(float deltaTime);
     void Render();
 
 public:
