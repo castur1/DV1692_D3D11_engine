@@ -28,7 +28,7 @@ MeshData::MeshData(ID3D11Device *device, const std::vector<Vertex> &vertices, co
     }
 
     D3D11_BUFFER_DESC indexBufferDesc{};
-    indexBufferDesc.ByteWidth = sizeof(unsigned int) * this->indexCount;
+    indexBufferDesc.ByteWidth = sizeof(UINT) * this->indexCount;
     indexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
     indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     indexBufferDesc.CPUAccessFlags = 0;

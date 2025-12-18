@@ -1,7 +1,7 @@
 #include "entity.hpp"
 #include "component.hpp"
 
-Entity::Entity() {}
+Entity::Entity(Scene *scene) : scene(scene) {}
 
 Entity::~Entity() {}
 

@@ -11,7 +11,7 @@ class MeshRenderer : public Component {
     Material *material;
 
 public:
-    MeshRenderer(MeshData *mesh, Material *material);
+    MeshRenderer(Entity *owner, MeshData *mesh, Material *material);
     ~MeshRenderer();
 
     void Update(float deltaTime) override;

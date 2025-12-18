@@ -1,8 +1,8 @@
 #include "mesh_renderer.hpp"
 #include "renderer.hpp"
 
-MeshRenderer::MeshRenderer(MeshData *mesh, Material *material) 
-    : Component(), mesh(mesh), material(material) {}
+MeshRenderer::MeshRenderer(Entity *owner, MeshData *mesh, Material *material) 
+    : Component(owner), mesh(mesh), material(material) {}
 
 MeshRenderer::~MeshRenderer() {}
 

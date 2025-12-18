@@ -2,12 +2,14 @@
 #define COMPONENT_HPP
 
 class Renderer;
+class Entity;
 
 class Component {
-
+protected:
+    Entity *owner;
 
 public:
-    Component();
+    Component(Entity *owner);
     ~Component();
 
     virtual void Update(float deltaTime) = 0;

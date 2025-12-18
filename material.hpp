@@ -9,7 +9,7 @@ class Material {
     ID3D11PixelShader *pixelShader;
     ID3D11InputLayout *inputLayout;
 
-    bool LoadShader(const std::wstring &path, void **buffer, size_t *size);
+    bool LoadShader(const std::wstring &path, void *&buffer, SIZE_T &size);
 
 public:
     Material(ID3D11Device *device, const std::wstring &vertexShaderPath, const std::wstring &pixelShaderPath);

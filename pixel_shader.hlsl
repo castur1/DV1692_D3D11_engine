@@ -1,8 +1,8 @@
-struct PS_INPUT {
+struct Pixel_shader_input {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
+    float4 colour : COLOUR;
 };
 
-float4 main(PS_INPUT input) : SV_TARGET {
-    return input.color;
+float4 main(Pixel_shader_input input) : SV_TARGET {
+    return input.colour;
 }

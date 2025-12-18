@@ -1,4 +1,4 @@
 #include "component.hpp"
 
-Component::Component() {}
+Component::Component(Entity *owner) : owner(owner) {}
 Component::~Component() {}

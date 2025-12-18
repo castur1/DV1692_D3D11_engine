@@ -7,9 +7,7 @@
 #include "mesh_data.hpp"
 #include "renderer.hpp"
 
-SceneManager::SceneManager() : currentScene(nullptr) {
-
-}
+SceneManager::SceneManager() : currentScene(nullptr) {}
 
 SceneManager::~SceneManager() {}
 
@@ -21,14 +19,12 @@ Scene *SceneManager::AddBlankScene(const std::string &name) {
 void SceneManager::CreateScenes(Renderer *renderer) {
     Scene *scene = this->AddBlankScene("demo_0");
 
-    // CONTINUE HERE! Change shader vector4 to vector3!
-
     {
         std::vector<Vertex> vertices = {
-            { { -0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-            { {  0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-            { {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-            { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f } }
+            { { -0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+            { {  0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+            { {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
+            { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f } }
         };
 
         std::vector<UINT> indices = {
@@ -50,10 +46,10 @@ void SceneManager::CreateScenes(Renderer *renderer) {
 
     {
         std::vector<Vertex> vertices = {
-            { { -1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-            { {  -0.8f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-            { {  -0.8f, -1.0, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
-            { { -1.0f, -1.0, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }
+            { { -1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+            { { -0.8f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+            { { -0.8f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
+            { { -1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } }
         };
 
         std::vector<UINT> indices = {
@@ -72,7 +68,6 @@ void SceneManager::CreateScenes(Renderer *renderer) {
         Entity *entity = scene->AddEntity();
         entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
     }
-
 }
 
 void SceneManager::ChangeScene(const std::string &name) {

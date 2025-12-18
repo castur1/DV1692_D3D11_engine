@@ -6,7 +6,7 @@
 
 struct Vertex {
     float position[3];
-    float colour[4];
+    float colour[3];
 };
 
 class MeshData {
