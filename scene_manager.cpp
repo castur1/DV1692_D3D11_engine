@@ -6,6 +6,7 @@
 #include "material.hpp"
 #include "mesh_data.hpp"
 #include "renderer.hpp"
+#include "input.hpp"
 
 SceneManager::SceneManager() : currentScene(nullptr) {}
 
@@ -111,7 +112,8 @@ void SceneManager::Render(Renderer *renderer) {
     if (x < -5.0f || x > 5.0)
         delta = -delta;
 
-    x += delta * TEST_dt;
+    if (Input::IsKeyDown('W'))
+        x += delta * TEST_dt;
 
     XMVECTOR eyePosition = XMVectorSet(x, 0.0f, -5.0f, 1.0f);
     XMVECTOR focusPosition = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);

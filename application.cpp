@@ -4,6 +4,7 @@
 
 #include "application.hpp"
 #include "logging.hpp"
+#include "input.hpp"
 
 Application::Application() {}
 
@@ -21,6 +22,7 @@ bool Application::CreateConsole() {
 }
 
 void Application::Update(float deltaTime) {
+    Input::Update();
     this->sceneManager.Update(deltaTime);
 }
 
