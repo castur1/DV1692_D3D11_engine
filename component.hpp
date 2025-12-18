@@ -5,7 +5,6 @@ class Renderer;
 class Entity;
 
 class Component {
-protected:
     Entity *owner;
 
 public:
@@ -14,6 +13,8 @@ public:
 
     virtual void Update(float deltaTime) = 0;
     virtual void Render(Renderer *renderer) = 0;
+
+    Entity *GetOwner() const;
 };
 
 #endif

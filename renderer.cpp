@@ -12,14 +12,23 @@ Renderer::Renderer()
       renderTargetView{},
       depthStencilTexture{},
       depthStencilView{},
-      viewport{} {
+      viewport{},
+      perObjectBuffer{},
+      perFrameBuffer{},
+      currentFrameData{} {
     this->clearColour[0] = 0.3f;
     this->clearColour[1] = 0.0f;
     this->clearColour[2] = 0.0f;
     this->clearColour[3] = 1.0f;
+
+    XMStoreFloat4x4(&this->currentFrameData.viewMatrix, XMMatrixIdentity());
+    XMStoreFloat4x4(&this->currentFrameData.projectionMatrix, XMMatrixIdentity());
 }
 
 Renderer::~Renderer() {
+    SafeRelease(this->perFrameBuffer);
+    SafeRelease(this->perObjectBuffer);
+
     SafeRelease(this->depthStencilView);
     SafeRelease(this->depthStencilTexture);
     SafeRelease(this->renderTargetView);
@@ -148,6 +157,33 @@ bool Renderer::CreateDepthStencil(HWND hWnd) {
     return true;
 }
 
+bool Renderer::CreateConstantBuffers() {
+    D3D11_BUFFER_DESC bufferDesc{};
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.MiscFlags = 0;
+    bufferDesc.StructureByteStride = 0;
+
+    bufferDesc.ByteWidth = sizeof(Per_object_data);
+    HRESULT result = this->device->CreateBuffer(&bufferDesc, nullptr, &this->perObjectBuffer);
+    if (FAILED(result)) {
+        LogError("Failed to create per-object constant buffer");
+        return false;
+    }
+
+    bufferDesc.ByteWidth = sizeof(Per_frame_data);
+    result = this->device->CreateBuffer(&bufferDesc, nullptr, &this->perFrameBuffer);
+    if (FAILED(result)) {
+        LogError("Failed to create per-frame constant buffer");
+        return false;
+    }
+
+    LogInfo("   > Constant buffers created\n");
+
+    return true;
+}
+
 void Renderer::SetViewport(HWND hWnd) {
     RECT clientRect;
     GetClientRect(hWnd, &clientRect);
@@ -162,6 +198,28 @@ void Renderer::SetViewport(HWND hWnd) {
     this->viewport.MaxDepth = 1.0f;
 }
 
+void Renderer::UpdatePerObjectBuffer(const Per_object_data &data) {
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    HRESULT result = this->deviceContext->Map(this->perObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+    if (FAILED(result))
+        return;
+
+    *(Per_object_data *)mappedResource.pData = data;
+    this->deviceContext->Unmap(this->perObjectBuffer, 0);
+}
+
+void Renderer::UpdatePerFrameBuffer() {
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    HRESULT result = this->deviceContext->Map(this->perFrameBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+    if (FAILED(result))
+        return;
+
+    *(Per_frame_data *)mappedResource.pData = this->currentFrameData;
+    this->deviceContext->Unmap(this->perFrameBuffer, 0);
+}
+
 bool Renderer::Initialize(HWND hWnd) {
     LogInfo(" > Creating renderer...\n");
 
@@ -172,6 +230,9 @@ bool Renderer::Initialize(HWND hWnd) {
         return false;
 
     if (!this->CreateDepthStencil(hWnd))
+        return false;
+
+    if (!this->CreateConstantBuffers())
         return false;
 
     this->SetViewport(hWnd);
@@ -186,8 +247,15 @@ void Renderer::Submit(const Draw_command &command) {
 }
 
 void Renderer::Flush() {
+    this->UpdatePerFrameBuffer();
+
     for (const Draw_command &command : this->drawCommands) {
+        this->UpdatePerObjectBuffer({command.worldMatrix});
+
         command.material->Bind(this->deviceContext);
+
+        this->deviceContext->VSSetConstantBuffers(0, 1, &this->perObjectBuffer);
+        this->deviceContext->VSSetConstantBuffers(1, 1, &this->perFrameBuffer);
 
         UINT stride = sizeof(Vertex);
         UINT offset = 0;
@@ -217,4 +285,12 @@ void Renderer::End() {
 
 ID3D11Device *Renderer::GetDevice() const {
     return this->device;
+}
+
+void Renderer::SetViewMatrix(const XMMATRIX &viewMatrix) {
+    XMStoreFloat4x4(&this->currentFrameData.viewMatrix, XMMatrixTranspose(viewMatrix));
+}
+
+void Renderer::SetProjectionMatrix(const XMMATRIX &projectionMatrix) {
+    XMStoreFloat4x4(&this->currentFrameData.projectionMatrix, XMMatrixTranspose(projectionMatrix));
 }

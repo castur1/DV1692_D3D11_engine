@@ -4,6 +4,9 @@
 #include <vector>
 #include <Windows.h>
 #include <d3d11.h>
+#include <DirectXMath.h>
+
+using namespace DirectX;
 
 class MeshData;
 class Material;
@@ -11,6 +14,18 @@ class Material;
 struct Draw_command {
     MeshData *mesh;
     Material *material;
+    XMFLOAT4X4 worldMatrix;
+};
+
+// cbuffer element
+struct Per_object_data {
+    XMFLOAT4X4 worldMatrix;
+};
+
+// cbuffer element
+struct Per_frame_data {
+    XMFLOAT4X4 viewMatrix;
+    XMFLOAT4X4 projectionMatrix;
 };
 
 class Renderer {
@@ -22,12 +37,20 @@ class Renderer {
     ID3D11DepthStencilView *depthStencilView;
     D3D11_VIEWPORT viewport;
 
+    ID3D11Buffer *perObjectBuffer;
+    ID3D11Buffer *perFrameBuffer;
+
+    Per_frame_data currentFrameData;
     std::vector<Draw_command> drawCommands;
 
     bool CreateInterface(HWND hWnd);
     bool CreateRenderTargetView();
     bool CreateDepthStencil(HWND hWnd);
+    bool CreateConstantBuffers();
     void SetViewport(HWND hWnd);
+
+    void UpdatePerObjectBuffer(const Per_object_data &data);
+    void UpdatePerFrameBuffer();
 
 public:
     float clearColour[4];
@@ -43,6 +66,9 @@ public:
     void End();
 
     ID3D11Device *GetDevice() const;
+
+    void SetViewMatrix(const XMMATRIX &viewMatrix);
+    void SetProjectionMatrix(const XMMATRIX &projectionMatrix);
 };
 
 #endif

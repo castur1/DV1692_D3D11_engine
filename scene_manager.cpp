@@ -19,55 +19,29 @@ Scene *SceneManager::AddBlankScene(const std::string &name) {
 void SceneManager::CreateScenes(Renderer *renderer) {
     Scene *scene = this->AddBlankScene("demo_0");
 
-    {
-        std::vector<Vertex> vertices = {
-            { { -0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-            { {  0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-            { {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
-            { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f } }
-        };
+    std::vector<Vertex> vertices = {
+        { { -0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+        { {  0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+        { {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
+        { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f } }
+    };
 
-        std::vector<UINT> indices = {
-            0, 1, 2,
-            0, 2, 3
-        };
+    std::vector<UINT> indices = {
+        0, 1, 2,
+        0, 2, 3
+    };
 
-        auto meshData = std::make_unique<MeshData>(renderer->GetDevice(), vertices, indices);
-        MeshData *meshDataPtr = meshData.get();
-        this->meshes.push_back(std::move(meshData));
+    auto meshData = std::make_unique<MeshData>(renderer->GetDevice(), vertices, indices);
+    MeshData *meshDataPtr = meshData.get();
+    this->meshes.push_back(std::move(meshData));
 
-        auto material = std::make_unique<Material>(renderer->GetDevice(), L"vertex_shader.cso", L"pixel_shader.cso");
-        Material *materialPtr = material.get();
-        this->materials.push_back(std::move(material));
+    auto material = std::make_unique<Material>(renderer->GetDevice(), L"vertex_shader.cso", L"pixel_shader.cso");
+    Material *materialPtr = material.get();
+    this->materials.push_back(std::move(material));
 
-        Entity *entity = scene->AddEntity();
-        entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
-    }
-
-    {
-        std::vector<Vertex> vertices = {
-            { { -1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-            { { -0.8f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-            { { -0.8f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
-            { { -1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } }
-        };
-
-        std::vector<UINT> indices = {
-            0, 1, 2,
-            0, 2, 3
-        };
-
-        auto meshData = std::make_unique<MeshData>(renderer->GetDevice(), vertices, indices);
-        MeshData *meshDataPtr = meshData.get();
-        this->meshes.push_back(std::move(meshData));
-
-        auto material = std::make_unique<Material>(renderer->GetDevice(), L"vertex_shader.cso", L"pixel_shader.cso");
-        Material *materialPtr = material.get();
-        this->materials.push_back(std::move(material));
-
-        Entity *entity = scene->AddEntity();
-        entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
-    }
+    Entity *entity = scene->AddEntity();
+    entity->AddComponent<Transform>();
+    entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
 }
 
 void SceneManager::ChangeScene(const std::string &name) {
@@ -89,6 +63,16 @@ void SceneManager::RequestSceneChange(const std::string &name) {
 void SceneManager::Initialize(Renderer *renderer) {
     this->CreateScenes(renderer);
     this->RequestSceneChange("demo_0");
+
+    XMVECTOR eyePosition = XMVectorSet(5.0f, 0.0f, -5.0f, 1.0f);
+    XMVECTOR focusPosition = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+    XMVECTOR upDirection = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    XMMATRIX viewMatrix = XMMatrixLookAtLH(eyePosition, focusPosition, upDirection);
+
+    XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV4, 1280.0f / 720.0f, 0.1f, 100.0f);
+
+    renderer->SetViewMatrix(viewMatrix);
+    renderer->SetProjectionMatrix(projectionMatrix);
 }
 
 void SceneManager::Update(float deltaTime) {
@@ -108,6 +92,20 @@ void SceneManager::Render(Renderer *renderer) {
         LogError("No scene was set");
         return;
     }
+    
+    static float x = -5.0f;
+    static float delta = 0.001;
+
+    if (x < -5.0f || x > 5.0)
+        delta = -delta;
+
+    x += delta;
+
+    XMVECTOR eyePosition = XMVectorSet(x, 0.0f, -5.0f, 1.0f);
+    XMVECTOR focusPosition = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+    XMVECTOR upDirection = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    XMMATRIX viewMatrix = XMMatrixLookAtLH(eyePosition, focusPosition, upDirection);
+    renderer->SetViewMatrix(viewMatrix);
 
     this->currentScene->Render(renderer);
 }

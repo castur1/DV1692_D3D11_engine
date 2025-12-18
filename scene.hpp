@@ -14,10 +14,10 @@ public:
     Scene();
     ~Scene();
 
-    Entity *AddEntity();
-
     void Update(float deltaTime);
     void Render(Renderer *renderer);
+
+    Entity *AddEntity();
 };
 
 #endif

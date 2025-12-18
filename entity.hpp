@@ -17,6 +17,9 @@ public:
     Entity(Scene *scene);
     ~Entity();
 
+    void Update(float deltaTime);
+    void Render(Renderer *renderer);
+
     template<typename T, typename... Args>
     T *AddComponent( Args&&... args) {
         this->components.emplace_back(std::make_unique<T>(this, std::forward<Args>(args)...));
@@ -33,9 +36,6 @@ public:
 
         return nullptr;
     }
-
-    void Update(float deltaTime);
-    void Render(Renderer *renderer);
 };
 
 #endif
