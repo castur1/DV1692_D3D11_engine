@@ -18,6 +18,7 @@ public:
     void Render(Renderer *renderer);
 
     Entity *AddEntity(bool isActive = true);
+    std::vector<Entity *> GetEntities();
 };
 
 #endif

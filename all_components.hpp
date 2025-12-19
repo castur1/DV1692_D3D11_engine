@@ -2,7 +2,7 @@
 #define ALL_COMPONENTS_HPP
 
 #include "transform.hpp"
-#include "mesh_renderer.hpp"
+#include "model_renderer.hpp"
 #include "camera_controller.hpp"
 
 #endif

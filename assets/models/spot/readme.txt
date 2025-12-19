@@ -1,0 +1,1 @@
+Model and texture from https://www.cs.cmu.edu/~kmcrane/Projects/ModelRepository/

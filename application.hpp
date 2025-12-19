@@ -4,10 +4,12 @@
 #include "window.hpp"
 #include "renderer.hpp"
 #include "scene_manager.hpp"
+#include "asset_manager.hpp"
 
 class Application {
     Window window;
     Renderer renderer;
+    AssetManager assetManager;
     SceneManager sceneManager;
 
     bool CreateConsole();

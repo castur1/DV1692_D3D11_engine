@@ -6,14 +6,21 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 
+#include "model.hpp"
+
 using namespace DirectX;
 
-class MeshData;
-class Material;
 
 struct Draw_command {
-    MeshData *mesh;
+    ID3D11Buffer *vertexBuffer;
+    ID3D11Buffer *indexBuffer;
+
+    UINT indexCount;
+    UINT startIndex;
+    INT baseVertex;
+
     Material *material;
+
     XMFLOAT4X4 worldMatrix;
 };
 
@@ -23,6 +30,7 @@ struct Per_object_data {
 };
 
 // cbuffer element
+// TODO: Combine these before sending to the GPU?
 struct Per_frame_data {
     XMFLOAT4X4 viewMatrix;
     XMFLOAT4X4 projectionMatrix;

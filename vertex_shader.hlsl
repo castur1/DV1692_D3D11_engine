@@ -9,12 +9,14 @@ cbuffer Per_frame : register(b1) {
 
 struct Vertex_shader_input {
     float3 position : POSITION;
-    float3 colour : COLOUR;
+    float3 normal : NORMAL;
+    float2 uv : TEXCOORD;
 };
 
 struct Vertex_shader_output {
     float4 position : SV_POSITION;
-    float4 colour : COLOUR;
+    float3 normal : NORMAL;
+    float2 uv : TEXCOORD;
 };
 
 Vertex_shader_output main(Vertex_shader_input input) {
@@ -26,7 +28,8 @@ Vertex_shader_output main(Vertex_shader_input input) {
     position = mul(position, projectionMatrix); // TODO: Combine view and projection matrices
     output.position = position;
     
-    output.colour = float4(input.colour, 1.0f);
+    output.normal = mul(input.normal, (float3x3) worldMatrix);
+    output.uv = input.uv;
     
     return output;
 }

@@ -3,10 +3,9 @@
 #include "entity.hpp"
 #include "all_components.hpp"
 #include "logging.hpp"
-#include "material.hpp"
-#include "mesh_data.hpp"
 #include "renderer.hpp"
 #include "input.hpp"
+#include "asset_manager.hpp"
 
 SceneManager::SceneManager() : currentScene(nullptr) {}
 
@@ -17,48 +16,29 @@ Scene *SceneManager::AddBlankScene(const std::string &name) {
     return result.first->second.get();
 }
 
-void SceneManager::CreateScenes(Renderer *renderer) {
+void SceneManager::CreateScenes(Renderer *renderer, AssetManager *assetManager) {
     Scene *scene = this->AddBlankScene("demo_0");
 
-    std::vector<Vertex> vertices = {
-        { { -0.5f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-        { {  0.5f,  0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-        { {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
-        { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f } }
-    };
+    ModelPtr model = assetManager->LoadModel("models/suzanne/Suzanne.obj");
 
-    std::vector<UINT> indices = {
-        0, 1, 2,
-        0, 2, 3
-    };
-
-    auto meshData = std::make_unique<MeshData>(renderer->GetDevice(), vertices, indices);
-    MeshData *meshDataPtr = meshData.get();
-    this->meshes.push_back(std::move(meshData));
-
-    auto material = std::make_unique<Material>(renderer->GetDevice(), L"vertex_shader.cso", L"pixel_shader.cso");
-    Material *materialPtr = material.get();
-    this->materials.push_back(std::move(material));
+    float r2d = XM_PI / 180.0f;
 
     Entity *entity = scene->AddEntity();
-    entity->AddComponent<Transform>();
-    entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
+    entity->AddComponent<Transform>(XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT3(0.0f, -90 * r2d, 0.0f), XMFLOAT3(2.0f, 2.0f, 2.0f));
+    entity->AddComponent<ModelRenderer>(model.get());
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(-0.5f, 0, 0.5f), XMFLOAT3(0, XM_PI / 2, 0), XMFLOAT3(1, 1, 1));
-    entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
+    entity->AddComponent<Transform>(XMFLOAT3(3.0f, -1.0f, -2.0f), XMFLOAT3(0.0f, -45 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<ModelRenderer>(model.get());
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(0.5f, 0, 0.5f), XMFLOAT3(0, 3 * XM_PI / 2, 0), XMFLOAT3(1, 1, 1));
-    entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
+    entity->AddComponent<Transform>(XMFLOAT3(-3.0f, -1.0f, -2.0f), XMFLOAT3(0.0f, -135 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<ModelRenderer>(model.get());
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(0, 0.5f, 0.5f), XMFLOAT3(XM_PI / 2, 0, 0), XMFLOAT3(1, 1, 1));
-    entity->AddComponent<MeshRenderer>(meshDataPtr, materialPtr);
-
-    entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(0.0f, 0.0f, -5.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<Transform>(XMFLOAT3(0.0f, 0.0f, -8.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
     entity->AddComponent<CameraController>(renderer);
+
 }
 
 void SceneManager::ChangeScene(const std::string &name) {
@@ -77,8 +57,8 @@ void SceneManager::RequestSceneChange(const std::string &name) {
     this->targetSceneName = name;
 }
 
-void SceneManager::Initialize(Renderer *renderer) {
-    this->CreateScenes(renderer);
+void SceneManager::Initialize(Renderer *renderer, AssetManager *assetManager) {
+    this->CreateScenes(renderer, assetManager);
     this->RequestSceneChange("demo_0");
 }
 

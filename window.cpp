@@ -42,6 +42,8 @@ bool Window::Initialize(int width, int height, const wchar_t *title) {
 
     ShowWindow(this->hWnd, SW_SHOWDEFAULT);
 
+    ShowCursor(false); // TODO
+
     this->shouldClose = false;
 
     LogInfo(" > Window created\n");

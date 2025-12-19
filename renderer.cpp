@@ -1,7 +1,5 @@
 #include "renderer.hpp"
 #include "logging.hpp"
-#include "mesh_data.hpp"
-#include "material.hpp"
 
 #define SafeRelease(obj) do { if (obj) obj->Release(); } while (0)
 
@@ -248,24 +246,45 @@ void Renderer::Submit(const Draw_command &command) {
 
 void Renderer::Flush() {
     this->UpdatePerFrameBuffer();
+    this->deviceContext->VSSetConstantBuffers(1, 1, &this->perFrameBuffer);
+
+    Pipeline_state *currentPipelineState{};
+    Material *currentMaterial{};
+    ID3D11Buffer *currentVertexBuffer{};
 
     for (const Draw_command &command : this->drawCommands) {
         this->UpdatePerObjectBuffer({command.worldMatrix});
-
-        command.material->Bind(this->deviceContext);
-
         this->deviceContext->VSSetConstantBuffers(0, 1, &this->perObjectBuffer);
-        this->deviceContext->VSSetConstantBuffers(1, 1, &this->perFrameBuffer);
 
-        UINT stride = sizeof(Vertex);
-        UINT offset = 0;
-        ID3D11Buffer *vertexBuffer = command.mesh->GetVertexBuffer();
+        Pipeline_state *pipelineState = command.material->pipelineState;
+        if (pipelineState != currentPipelineState) {
+            currentPipelineState = pipelineState;
 
-        this->deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-        this->deviceContext->IASetIndexBuffer(command.mesh->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-        this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            this->deviceContext->IASetInputLayout(pipelineState->inputLayout);
+            this->deviceContext->IASetPrimitiveTopology(pipelineState->primitiveTopology);
+            this->deviceContext->VSSetShader(pipelineState->vertexShader, nullptr, 0);
+            this->deviceContext->PSSetShader(pipelineState->pixelShader, nullptr, 0);
+        }
 
-        this->deviceContext->DrawIndexed(command.mesh->GetIndexCount(), 0, 0);
+        Material *material = command.material;
+        if (material != currentMaterial) {
+            currentMaterial = material;
+
+            // Set textures etc.
+        }
+
+        ID3D11Buffer *vertexBuffer = command.vertexBuffer;
+        if (vertexBuffer != currentVertexBuffer) {
+            currentVertexBuffer = vertexBuffer;
+
+            UINT stride = sizeof(Vertex);
+            UINT offset = 0;
+
+            this->deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+            this->deviceContext->IASetIndexBuffer(command.indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+        }
+
+        this->deviceContext->DrawIndexed(command.indexCount, command.startIndex, command.baseVertex);
     }
 
     this->drawCommands.clear();

@@ -1,0 +1,1 @@
+Model and texture from https://ambientcg.com/view?id=3DApple002

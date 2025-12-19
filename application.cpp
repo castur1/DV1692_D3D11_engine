@@ -49,7 +49,9 @@ bool Application::Initialize() {
     if (!this->renderer.Initialize(this->window.GetHandle()))
         return false;
 
-    this->sceneManager.Initialize(&this->renderer);
+    this->assetManager.Initialize(this->renderer.GetDevice());
+
+    this->sceneManager.Initialize(&this->renderer, &this->assetManager);
 
     LogInfo("Intialization successful!\n");
 
