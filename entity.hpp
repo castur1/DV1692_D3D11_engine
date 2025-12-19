@@ -14,15 +14,17 @@ class Entity {
     std::vector<std::unique_ptr<Component>> components;
 
 public:
-    Entity(Scene *scene);
+    bool isActive;
+
+    Entity(Scene *scene, bool isAtive = true);
     ~Entity();
 
     void Update(float deltaTime);
     void Render(Renderer *renderer);
 
     template<typename T, typename... Args>
-    T *AddComponent( Args&&... args) {
-        this->components.emplace_back(std::make_unique<T>(this, std::forward<Args>(args)...));
+    T *AddComponent(Args&&... args) {
+        this->components.emplace_back(std::make_unique<T>(this, true, std::forward<Args>(args)...));
         return static_cast<T *>(this->components.back().get());
     }
 

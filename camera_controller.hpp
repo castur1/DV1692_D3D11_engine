@@ -23,6 +23,7 @@ public:
 
     CameraController(
         Entity *owner, 
+        bool isActive,
         Renderer *renderer, 
         float moveSpeed     = 5.0f, 
         float rotationSpeed = 1.0f,

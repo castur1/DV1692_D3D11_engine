@@ -5,9 +5,9 @@
 #include "input.hpp"
 #include "renderer.hpp"
 
-CameraController::CameraController(Entity *owner, Renderer *renderer, float moveSpeed, 
+CameraController::CameraController(Entity *owner, bool isActive, Renderer *renderer, float moveSpeed, 
     float rotationSpeed, float fov, float aspectRatio, float nearPlane, float farPlane)
-    : Component(owner), 
+    : Component(owner, isActive), 
       renderer(renderer), 
       moveSpeed(moveSpeed), 
       rotationSpeed(rotationSpeed),
@@ -21,6 +21,9 @@ CameraController::CameraController(Entity *owner, Renderer *renderer, float move
 CameraController::~CameraController() {}
 
 void CameraController::Update(float deltaTime) {
+    if (!this->isActive)
+        return;
+
     Transform *transform = this->GetOwner()->GetComponent<Transform>();
     if (transform == nullptr) {
         LogError("Missing Transform component on owner");

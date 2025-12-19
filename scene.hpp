@@ -17,7 +17,7 @@ public:
     void Update(float deltaTime);
     void Render(Renderer *renderer);
 
-    Entity *AddEntity();
+    Entity *AddEntity(bool isActive = true);
 };
 
 #endif

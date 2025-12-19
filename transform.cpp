@@ -1,10 +1,10 @@
 #include "transform.hpp"
 
-Transform::Transform(Entity *owner, const XMFLOAT3 &position, const XMFLOAT3 &rotation, const XMFLOAT3 &scale)
-    : Component(owner), position(position), rotation(rotation), scale(scale) {}
+Transform::Transform(Entity *owner, bool isActive, const XMFLOAT3 &position, const XMFLOAT3 &rotation, const XMFLOAT3 &scale)
+    : Component(owner, isActive), position(position), rotation(rotation), scale(scale) {}
 
-Transform::Transform(Entity *owner) 
-    : Transform(owner, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}) {}
+Transform::Transform(Entity *owner, bool isActive) 
+    : Transform(owner, isActive, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}) {}
 
 Transform::~Transform() {}
 

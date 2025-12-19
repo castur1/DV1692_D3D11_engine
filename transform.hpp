@@ -13,8 +13,8 @@ class Transform : public Component {
     XMFLOAT3 scale;
 
 public:
-    Transform(Entity *owner, const XMFLOAT3 &position, const XMFLOAT3 &rotation, const XMFLOAT3 &scale);
-    Transform(Entity *owner);
+    Transform(Entity *owner, bool isActive, const XMFLOAT3 &position, const XMFLOAT3 &rotation, const XMFLOAT3 &scale);
+    Transform(Entity *owner, bool isActive);
     ~Transform();
 
     void Update(float deltaTime) override;

@@ -8,7 +8,9 @@ class Component {
     Entity *owner;
 
 public:
-    Component(Entity *owner);
+    bool isActive;
+
+    Component(Entity *owner, bool isActive);
     ~Component();
 
     virtual void Update(float deltaTime) = 0;

@@ -5,8 +5,8 @@ Scene::Scene() {}
 
 Scene::~Scene() {}
 
-Entity *Scene::AddEntity() {
-    this->entities.emplace_back(std::make_unique<Entity>(this));
+Entity *Scene::AddEntity(bool isActive) {
+    this->entities.emplace_back(std::make_unique<Entity>(this, isActive));
     return this->entities.back().get();
 }
 
