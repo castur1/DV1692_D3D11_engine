@@ -16,7 +16,7 @@ class Entity {
 public:
     bool isActive;
 
-    Entity(Scene *scene, bool isAtive = true);
+    Entity(Scene *scene, bool isActive = true);
     ~Entity();
 
     void Update(float deltaTime);

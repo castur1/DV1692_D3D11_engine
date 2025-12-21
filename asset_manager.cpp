@@ -1,8 +1,8 @@
 #include <fstream>
 #include <map>
 
-#define TINYOBJLOADER_IMPLEMENTATION
 #include "external/tiny_obj_loader.h"
+#include "external/stb_image.h"
 
 #include "asset_manager.hpp"
 #include "logging.hpp"
@@ -23,12 +23,63 @@ void AssetManager::CreateDefaultPipelineState() {
     this->defaultPipelineState.primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 }
 
+// 1x1 white square
+void AssetManager::CreateDefaultTexture() {
+    const UINT width  = 1;
+    const UINT height = 1;
+    UINT32 pixels[width * height] = {
+        0xFFFFFFFF
+    };
+
+    D3D11_TEXTURE2D_DESC textureDesc{};
+    textureDesc.Width = width;
+    textureDesc.Height = height;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA inititialData{};
+    inititialData.pSysMem = pixels;
+    inititialData.SysMemPitch = width * sizeof(UINT);
+    inititialData.SysMemSlicePitch = 0;
+
+    ID3D11Texture2D *texture{};
+    HRESULT result = this->device->CreateTexture2D(&textureDesc, &inititialData, &texture);
+    if (FAILED(result)) {
+        LogInfo("Failed to create the default texture\n");
+        return;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc{};
+    shaderResourceViewDesc.Format = textureDesc.Format;
+    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+    shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+    this->defaultTexture = std::make_shared<Texture>();
+    result = this->device->CreateShaderResourceView(texture, &shaderResourceViewDesc, 
+        &this->defaultTexture->shaderResourceView);
+    
+    texture->Release();
+
+    if (FAILED(result)) {
+        LogInfo("Failed to create the default texture SRV\n");
+        return;
+    }
+}
+
 void AssetManager::CreateDefaultMaterial() {
     this->defaultMaterial = std::make_shared<Material>();
 
     this->defaultMaterial->name = "";
     this->defaultMaterial->pipelineState = &this->defaultPipelineState;
-    this->defaultMaterial->diffuseTexture = nullptr;
+    this->defaultMaterial->diffuseTexture = this->defaultTexture;
     this->defaultMaterial->diffuseColour = {0.0f, 0.0f, 0.0f, 1.0f};
     this->defaultMaterial->specularExponent = 1.0f;
 
@@ -39,6 +90,7 @@ void AssetManager::Initialize(ID3D11Device *device) {
     this->device = device;
 
     this->CreateDefaultPipelineState();
+    this->CreateDefaultTexture();
     this->CreateDefaultMaterial();
 }
 
@@ -127,6 +179,75 @@ bool AssetManager::LoadShaders(
     return true;
 }
 
+TexturePtr AssetManager::LoadTexture(const std::string &path) {
+    auto iter = this->textureCache.find(path);
+    if (iter != this->textureCache.end()) {
+        LogInfo("Texture '%s' loaded from cache\n", path.c_str());
+        return iter->second;
+    }
+
+    std::string fullPath = this->assetDir.empty() ? path : this->assetDir + path;
+
+    int width, height, components;
+    unsigned char *data = stbi_load(fullPath.c_str(), &width, &height, &components, 4);
+
+    if (data == nullptr) {
+        LogInfo("Failed to load image file '%s': '%s'\n", path.c_str(), stbi_failure_reason());
+        return this->defaultTexture;
+    }
+
+    D3D11_TEXTURE2D_DESC textureDesc{};
+    textureDesc.Width = width;
+    textureDesc.Height = height;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA inititialData{};
+    inititialData.pSysMem = data;
+    inititialData.SysMemPitch = width * sizeof(unsigned char) * 4;
+    inititialData.SysMemSlicePitch = 0;
+
+    ID3D11Texture2D *texture{};
+    HRESULT result = this->device->CreateTexture2D(&textureDesc, &inititialData, &texture);
+
+    stbi_image_free(data);
+
+    if (FAILED(result)) {
+        LogInfo("Failed to create texture '%s'\n", path.c_str());
+        return this->defaultTexture;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc{};
+    shaderResourceViewDesc.Format = textureDesc.Format;
+    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+    shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+    TexturePtr texturePtr = std::make_shared<Texture>();
+    result = this->device->CreateShaderResourceView(texture, &shaderResourceViewDesc, 
+        &texturePtr->shaderResourceView);
+
+    texture->Release();
+
+    if (FAILED(result)) {
+        LogInfo("Failed to create SRV for texture '%s'\n", path.c_str());
+        return this->defaultTexture;
+    }
+
+    this->textureCache[path] = texturePtr;
+
+    LogInfo("Texture '%s' loaded successfully (%dx%d)\n", path.c_str(), width, height);
+
+    return texturePtr;
+}
+
 //MaterialPtr AssetManager::LoadMaterial() {
 //    return nullptr;
 //}
@@ -174,9 +295,14 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
 
         newMaterial->pipelineState = this->defaultMaterial->pipelineState;
 
-        newMaterial->diffuseTexture = nullptr;
-        if (!materials[i].diffuse_texname.empty())
-            ; // TODO: Texture loading
+        if (materials[i].diffuse_texname.empty()) {
+            newMaterial->diffuseTexture = this->defaultTexture;
+        }
+        else {
+            size_t lastSlash = path.find_last_of("/\\");
+            std::string baseDir = lastSlash != std::string::npos ? path.substr(0, lastSlash + 1) : "";
+            newMaterial->diffuseTexture = this->LoadTexture(baseDir + materials[i].diffuse_texname);
+        }
 
         newMaterial->diffuseColour = {
             materials[i].diffuse[0], 
@@ -267,9 +393,9 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
         else
             subModel.material = this->defaultMaterial;
 
-        int vertexOffset = subModel.mesh.startIndex;
+        int indexOffset = finalVertices.size();
         for (UINT index : buckets[i].indices)
-            finalIndices.push_back(index + vertexOffset);
+            finalIndices.push_back(index + indexOffset);
 
         finalVertices.insert(finalVertices.end(), buckets[i].vertices.begin(), buckets[i].vertices.end());
 
@@ -308,11 +434,17 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
 
     this->modelCache[path] = newModel;
 
+    LogInfo("Model '%s' loaded successfully\n", path.c_str());
+
     return newModel;
 }
 
 Pipeline_state *AssetManager::GetDefaultPipelineState() {
     return &this->defaultPipelineState;
+}
+
+TexturePtr AssetManager::GetDefaultTexture() {
+    return this->defaultTexture;
 }
 
 MaterialPtr AssetManager::GetDefaultMaterial() {

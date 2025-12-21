@@ -10,7 +10,6 @@
 
 using namespace DirectX;
 
-
 struct Draw_command {
     ID3D11Buffer *vertexBuffer;
     ID3D11Buffer *indexBuffer;

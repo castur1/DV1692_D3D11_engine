@@ -16,7 +16,7 @@ struct Vertex {
     float normal[3];
     float uv[2];
 
-    // For std::map
+    // For std::map used for vertex deduplication in the OBJ loader
     bool operator<(const Vertex& other) const {
         if (position[0] != other.position[0]) return position[0] < other.position[0];
         if (position[1] != other.position[1]) return position[1] < other.position[1];
@@ -47,12 +47,22 @@ struct Pipeline_state {
     }
 };
 
+struct Texture {
+    ID3D11ShaderResourceView *shaderResourceView;
+
+    ~Texture() {
+        SafeRelease(this->shaderResourceView);
+    }
+};
+
+using TexturePtr = std::shared_ptr<Texture>;
+
 struct Material {
     std::string name;
 
     Pipeline_state *pipelineState;
 
-    ID3D11ShaderResourceView *diffuseTexture;
+    TexturePtr diffuseTexture;
 
     XMFLOAT4 diffuseColour;
     float specularExponent;
