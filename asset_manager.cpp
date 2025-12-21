@@ -6,87 +6,129 @@
 #include "asset_manager.hpp"
 #include "logging.hpp"
 
-AssetManager::AssetManager() : device(nullptr), assetDir("assets/"), pipelineStateDefault{} {}
+AssetManager::AssetManager() : device(nullptr), assetDir("assets/"), defaultPipelineState{} {}
 
 AssetManager::~AssetManager() {}
 
-void TEMP_LoadShaderFromFile(const std::wstring &filepath, void **buffer, size_t *size) {
-    std::ifstream file(filepath, std::ios::binary | std::ios::ate);
+void AssetManager::CreateDefaultPipelineState() {
+    this->LoadShaders(
+        "vs_default.cso",
+        "ps_default.cso",
+        &this->defaultPipelineState.vertexShader,
+        &this->defaultPipelineState.pixelShader,
+        &this->defaultPipelineState.inputLayout
+    );
+
+    this->defaultPipelineState.primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+}
+
+void AssetManager::CreateDefaultMaterial() {
+    this->defaultMaterial = std::make_shared<Material>();
+
+    this->defaultMaterial->name = "";
+    this->defaultMaterial->pipelineState = &this->defaultPipelineState;
+    this->defaultMaterial->diffuseTexture = nullptr;
+    this->defaultMaterial->diffuseColour = {0.0f, 0.0f, 0.0f, 1.0f};
+    this->defaultMaterial->specularExponent = 1.0f;
+
+    this->materialCache[""] = this->defaultMaterial;
+}
+
+void AssetManager::Initialize(ID3D11Device *device) {
+    this->device = device;
+
+    this->CreateDefaultPipelineState();
+    this->CreateDefaultMaterial();
+}
+
+bool AssetManager::LoadFileContents(const std::string &path, void **buffer, size_t *size) {
+    if (!buffer || !size)
+        return false;
+
+    std::ifstream file(path, std::ios::binary | std::ios::ate);
 
     if (!file.is_open()) {
-        LogError("Failed to open shader file");
-        return;
+        LogInfo("Failed to open file '%s'\n", path.c_str());
+        return false;
     }
 
     *size = file.tellg();
     *buffer = malloc(*size);
 
     if (*buffer == nullptr) {
-        LogError("Failed to allocate memory for shader");
-        return;
+        LogInfo("Failed to allocate memory for file '%s'\n", path.c_str());
+        return false;
     }
 
     file.seekg(0, std::ios::beg);
     file.read((char *)*buffer, *size);
     file.close();
+
+    return true;
 }
 
-void AssetManager::Initialize(ID3D11Device *device) {
-    this->device = device;
+bool AssetManager::LoadShaders(
+    const std::string &vertexShaderPath, 
+    const std::string &pixelShaderPath,
+    ID3D11VertexShader **vertexShader, 
+    ID3D11PixelShader **pixelShader, 
+    ID3D11InputLayout **inputLayout
+) {
+    void *vertexShaderBuffer{};
+    size_t vertexShaderBufferSize{};
 
-    this->defaultMaterial; // = this->LoadMaterial(L"shaders/vs_default.cso", L"shaders/ps_default.cso");
+    if (!this->LoadFileContents(vertexShaderPath, &vertexShaderBuffer, &vertexShaderBufferSize))
+        return false;
 
-    void *vsBuffer{};
-    size_t vsSize{};
-
-    TEMP_LoadShaderFromFile(L"vertex_shader.cso", &vsBuffer, &vsSize);
-
-    HRESULT result = device->CreateVertexShader(vsBuffer, vsSize, nullptr, &this->pipelineStateDefault.vertexShader);
+    HRESULT result = device->CreateVertexShader(vertexShaderBuffer, vertexShaderBufferSize, nullptr, vertexShader);
     if (FAILED(result)) {
-        free(vsBuffer);
-        LogError("Failed to create vertex shader");
-        return;
+        free(vertexShaderBuffer);
+        LogInfo("Failed to create vertex shader '%s'\n", vertexShaderPath.c_str());
+        return false;
     }
 
-    D3D11_INPUT_ELEMENT_DESC inputElements[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    D3D11_INPUT_ELEMENT_DESC inputElementDescs[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
-    result = device->CreateInputLayout(inputElements, 3, vsBuffer, vsSize, &this->pipelineStateDefault.inputLayout);
-    free(vsBuffer);
+    result = device->CreateInputLayout(inputElementDescs, 3, vertexShaderBuffer, vertexShaderBufferSize, inputLayout);
+
+    free(vertexShaderBuffer);
 
     if (FAILED(result)) {
-        LogError("Failed to create input layout");
-        return;
+        LogInfo("Failed to create input layout for '%s'\n", vertexShaderPath.c_str());
+        (*vertexShader)->Release();
+        return false;
     }
 
-    void *psBuffer{};
-    size_t psSize{};
+    void *pixelShaderBuffer{};
+    size_t pixelShaderBufferSize{};
 
-    TEMP_LoadShaderFromFile(L"pixel_shader.cso", &psBuffer, &psSize);
+    if (!this->LoadFileContents(pixelShaderPath, &pixelShaderBuffer, &pixelShaderBufferSize)) {
+        (*vertexShader)->Release();
+        (*inputLayout)->Release();
+        return false;
+    }
 
-    result = device->CreatePixelShader(psBuffer, psSize, nullptr, &this->pipelineStateDefault.pixelShader);
-    free(psBuffer);
+    result = device->CreatePixelShader(pixelShaderBuffer, pixelShaderBufferSize, nullptr, pixelShader);
+
+    free(pixelShaderBuffer);
 
     if (FAILED(result)) {
-        LogError("Failed to create pixel shader");
-        return;
+        LogInfo("Failed to create pixel shader '%s'\n", pixelShaderPath.c_str());
+        (*vertexShader)->Release();
+        (*inputLayout)->Release();
+        return false;
     }
 
-    this->defaultMaterial = std::make_shared<Material>();
-    this->defaultMaterial->name = "";
-    this->defaultMaterial->pipelineState = &this->pipelineStateDefault; // TODO
-    this->defaultMaterial->diffuseTexture = nullptr;
-    this->defaultMaterial->diffuseColour = {0.0f, 0.0f, 0.0f, 1.0f};
-    this->defaultMaterial->specularExponent = 1.0f;
-    this->materialCache[""] = this->defaultMaterial;
+    return true;
 }
 
-MaterialPtr AssetManager::LoadMaterial() {
-    return nullptr;
-}
+//MaterialPtr AssetManager::LoadMaterial() {
+//    return nullptr;
+//}
 
 ModelPtr AssetManager::LoadModel(const std::string &path) {
     auto iter = this->modelCache.find(path);
@@ -231,7 +273,7 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
 
     HRESULT result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &newModel->vertexBuffer);
     if (FAILED(result)) {
-        LogError("Failed to create vertex buffer");
+        LogInfo("Failed to create vertex buffer");
         return nullptr;
     }
 
@@ -246,11 +288,19 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
 
     result = device->CreateBuffer(&indexBufferDesc, &indexData, &newModel->indexBuffer);
     if (FAILED(result)) {
-        LogError("Failed to create index buffer");
+        LogInfo("Failed to create index buffer");
         return nullptr;
     }
 
     this->modelCache[path] = newModel;
 
     return newModel;
+}
+
+Pipeline_state *AssetManager::GetDefaultPipelineState() {
+    return &this->defaultPipelineState;
+}
+
+MaterialPtr AssetManager::GetDefaultMaterial() {
+    return this->defaultMaterial;
 }
