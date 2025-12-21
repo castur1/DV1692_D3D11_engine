@@ -1,4 +1,5 @@
 #include <fstream>
+#include <map>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "external/tiny_obj_loader.h"
@@ -192,6 +193,8 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
     struct Mesh_bucket {
         std::vector<Vertex> vertices;
         std::vector<UINT> indices;
+
+        std::map<Vertex, UINT> uniqueVertices;
     };
 
     std::vector<Mesh_bucket> buckets(materials.size() + 1); // +1 for default material
@@ -225,9 +228,20 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
                     vertex.uv[1] = 1.0f - attributes.texcoords[2 * index.texcoord_index + 1]; //
                 }
 
-                // TODO: Merge vertices
-                buckets[materialID].vertices.push_back(vertex);
-                buckets[materialID].indices.push_back(buckets[materialID].vertices.size() - 1);
+                Mesh_bucket &bucket = buckets[materialID];
+
+                auto iter = bucket.uniqueVertices.find(vertex);
+                if (iter != bucket.uniqueVertices.end()) {
+                    bucket.indices.push_back(iter->second);
+                }
+                else {
+                    UINT newIndex = bucket.vertices.size();
+
+                    bucket.vertices.push_back(vertex);
+                    bucket.indices.push_back(newIndex);
+
+                    bucket.uniqueVertices[vertex] = newIndex;
+                }
             }
 
             indexOffset += vertexCount;
@@ -249,9 +263,9 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
         subModel.mesh.baseVertex = 0;
 
         if (i < modelMaterials.size())
-            subModel.material = modelMaterials[i].get(); // TODO: Should these be shared vectors?
+            subModel.material = modelMaterials[i];
         else
-            subModel.material = defaultMaterial.get();
+            subModel.material = this->defaultMaterial;
 
         int vertexOffset = subModel.mesh.startIndex;
         for (UINT index : buckets[i].indices)

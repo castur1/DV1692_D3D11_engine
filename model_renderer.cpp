@@ -4,9 +4,10 @@
 #include "entity.hpp"
 #include "logging.hpp"
 
-ModelRenderer::ModelRenderer(Entity *owner, bool isActive, Model *model, const std::vector<Material *> &materials) 
+ModelRenderer::ModelRenderer(Entity *owner, bool isActive, Model *model, const std::vector<MaterialPtr> &materials) 
     : Component(owner, isActive), model(model), materials(materials) {
-    this->materials.resize(model->subModels.size());
+    if (this->materials.size() < model->subModels.size())
+        this->materials.resize(model->subModels.size(), nullptr);
 }
 
 ModelRenderer::~ModelRenderer() {}
@@ -26,9 +27,9 @@ void ModelRenderer::Render(Renderer *renderer) {
     for (int i = 0; i < this->model->subModels.size(); ++i) {
         const auto &subModel = this->model->subModels[i];
 
-        Material *material = this->materials[i];
+        Material *material = this->materials[i].get();
         if (material == nullptr)
-            material = subModel.material;
+            material = subModel.material.get();
 
         Draw_command command{};
 

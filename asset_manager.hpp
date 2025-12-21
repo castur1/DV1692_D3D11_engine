@@ -9,9 +9,6 @@
 
 #include "model.hpp"
 
-using ModelPtr = std::shared_ptr<Model>;
-using MaterialPtr = std::shared_ptr<Material>;
-
 class AssetManager {
     ID3D11Device *device;
 
