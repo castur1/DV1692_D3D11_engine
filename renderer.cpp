@@ -27,6 +27,9 @@ Renderer::~Renderer() {
     SafeRelease(this->perFrameBuffer);
     SafeRelease(this->perObjectBuffer);
 
+    for (int i = 0; i < (int)Sampler_state_type::COUNT; ++i)
+        SafeRelease(this->samplerStates[i]);
+
     SafeRelease(this->depthStencilView);
     SafeRelease(this->depthStencilTexture);
     SafeRelease(this->renderTargetView);
@@ -182,6 +185,33 @@ bool Renderer::CreateConstantBuffers() {
     return true;
 }
 
+bool Renderer::CreateCommonSamplerStates() {
+    D3D11_SAMPLER_DESC samplerDesc{};
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+
+    HRESULT result = this->device->CreateSamplerState(
+        &samplerDesc, 
+        &this->samplerStates[(int)Sampler_state_type::LINEAR_WRAP]
+    );
+    if (FAILED(result)) {
+        LogError("Failed to create linear wrap sampler state");
+        return false;
+    }
+
+    LogInfo("   > Common sampler states created\n");
+
+    return true;
+}
+
 void Renderer::SetViewport(HWND hWnd) {
     RECT clientRect;
     GetClientRect(hWnd, &clientRect);
@@ -218,6 +248,10 @@ void Renderer::UpdatePerFrameBuffer() {
     this->deviceContext->Unmap(this->perFrameBuffer, 0);
 }
 
+void Renderer::BindCommonSamplerStates() {
+    this->deviceContext->PSSetSamplers(0, (int)Sampler_state_type::COUNT, this->samplerStates);
+}
+
 bool Renderer::Initialize(HWND hWnd) {
     LogInfo(" > Creating renderer...\n");
 
@@ -231,6 +265,9 @@ bool Renderer::Initialize(HWND hWnd) {
         return false;
 
     if (!this->CreateConstantBuffers())
+        return false;
+
+    if (!this->CreateCommonSamplerStates())
         return false;
 
     this->SetViewport(hWnd);
@@ -270,7 +307,7 @@ void Renderer::Flush() {
         if (material != currentMaterial) {
             currentMaterial = material;
 
-            // Set textures etc.
+            this->deviceContext->PSSetShaderResources(0, 1, &material->diffuseTexture->shaderResourceView);
         }
 
         ID3D11Buffer *vertexBuffer = command.vertexBuffer;
@@ -296,6 +333,8 @@ void Renderer::Begin() {
 
     this->deviceContext->OMSetRenderTargets(1, &this->renderTargetView, this->depthStencilView);
     this->deviceContext->RSSetViewports(1, &this->viewport);
+
+    this->BindCommonSamplerStates();
 }
 
 void Renderer::End() {

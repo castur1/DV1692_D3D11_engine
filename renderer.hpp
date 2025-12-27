@@ -35,6 +35,11 @@ struct Per_frame_data {
     XMFLOAT4X4 projectionMatrix;
 };
 
+enum class Sampler_state_type {
+    LINEAR_WRAP = 0, // TODO: Why this? Add more?
+    COUNT
+};
+
 class Renderer {
     ID3D11Device *device;
     ID3D11DeviceContext *deviceContext;
@@ -42,6 +47,7 @@ class Renderer {
     ID3D11RenderTargetView *renderTargetView;
     ID3D11Texture2D *depthStencilTexture;
     ID3D11DepthStencilView *depthStencilView;
+    ID3D11SamplerState *samplerStates[(int)Sampler_state_type::COUNT];
     D3D11_VIEWPORT viewport;
 
     ID3D11Buffer *perObjectBuffer;
@@ -54,10 +60,12 @@ class Renderer {
     bool CreateRenderTargetView();
     bool CreateDepthStencil(HWND hWnd);
     bool CreateConstantBuffers();
+    bool CreateCommonSamplerStates();
     void SetViewport(HWND hWnd);
 
     void UpdatePerObjectBuffer(const Per_object_data &data);
     void UpdatePerFrameBuffer();
+    void BindCommonSamplerStates();
 
 public:
     float clearColour[4];

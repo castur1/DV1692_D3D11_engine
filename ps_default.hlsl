@@ -1,3 +1,7 @@
+SamplerState samplerLinearWrap : register(s0);
+
+Texture2D diffuseTexture : register(t0);
+
 struct Pixel_shader_input {
     float4 position : SV_POSITION;
     float3 normal : NORMAL;
@@ -5,5 +9,7 @@ struct Pixel_shader_input {
 };
 
 float4 main(Pixel_shader_input input) : SV_TARGET {
-    return float4(input.normal.xyz, 1.0f);
+    float4 textureColour = diffuseTexture.Sample(samplerLinearWrap, input.uv);
+    
+    return float4(textureColour.rgb, 1.0f);
 }
