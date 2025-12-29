@@ -19,22 +19,29 @@ Scene *SceneManager::AddBlankScene(const std::string &name) {
 void SceneManager::CreateScenes(Renderer *renderer, AssetManager *assetManager) {
     Scene *scene = this->AddBlankScene("demo_0");
 
+    Entity *entity = scene->AddEntity();
+    entity->AddComponent<LightingSystem>(renderer)->ambientColour = {0.2f, 0.2f, 0.35f};
+
+    entity = scene->AddEntity();
+    entity->AddComponent<Transform>(XMFLOAT3(0.0f, 4.0f, -4.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<LightSource>(Light_source_type::POINT, XMFLOAT3(1.0f, 1.0f, 0.8f), 8.0f);
+
     ModelPtr model = assetManager->LoadModel("models/apple/apple.obj");
 
     float r2d = XM_PI / 180.0f;
 
-    Entity *entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(0.0f, -90 * r2d, 0.0f), XMFLOAT3(2.0f, 2.0f, 2.0f));
+    entity = scene->AddEntity();
+    entity->AddComponent<Transform>(XMFLOAT3(0.0f, -0.15f, 0.0f), XMFLOAT3(0.0f, -90 * r2d, 0.0f), XMFLOAT3(2.0f, 2.0f, 2.0f));
     entity->AddComponent<ModelRenderer>(model);
 
     model = assetManager->LoadModel("models/suzanne/Suzanne.obj");
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(3.0f, 1.0f, -2.0f), XMFLOAT3(0.0f, -45 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<Transform>(XMFLOAT3(3.0f, -0.15f, -2.0f), XMFLOAT3(0.0f, -45 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
     entity->AddComponent<ModelRenderer>(model);
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(-3.0f, 1.0f, -2.0f), XMFLOAT3(0.0f, -135 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<Transform>(XMFLOAT3(-3.0f, -0.15f, -2.0f), XMFLOAT3(0.0f, -135 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
     entity->AddComponent<ModelRenderer>(model);
 
     model = assetManager->LoadModel("models/quad/quad.obj");
@@ -73,7 +80,7 @@ void SceneManager::Update(float deltaTime) {
     if (this->targetSceneName != this->currentSceneName)
         this->ChangeScene(this->targetSceneName);
 
-    if (this->currentScene == nullptr) {
+    if (!this->currentScene) {
         LogError("No scene was set");
         return;
     }
@@ -82,7 +89,7 @@ void SceneManager::Update(float deltaTime) {
 }
 
 void SceneManager::Render(Renderer *renderer) {
-    if (this->currentScene == nullptr) {
+    if (!this->currentScene) {
         LogError("No scene was set");
         return;
     }

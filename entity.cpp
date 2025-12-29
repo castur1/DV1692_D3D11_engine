@@ -5,6 +5,10 @@ Entity::Entity(Scene *scene, bool isActive) : scene(scene), isActive(isActive) {
 
 Entity::~Entity() {}
 
+Scene *Entity::GetScene() const {
+    return this->scene;
+}
+
 void Entity::Update(float deltaTime) {
     if (!this->isActive)
         return;

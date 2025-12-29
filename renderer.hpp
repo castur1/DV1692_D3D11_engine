@@ -8,6 +8,8 @@
 
 #include "model.hpp"
 
+#define MAX_LIGHTS 8
+
 using namespace DirectX;
 
 struct Draw_command {
@@ -23,20 +25,40 @@ struct Draw_command {
     XMFLOAT4X4 worldMatrix;
 };
 
-// cbuffer element
+struct Light_source_data {
+    XMFLOAT3 position;
+    float intensity;
+    XMFLOAT3 direction;
+    int type;
+    XMFLOAT3 colour;
+    float spotLightAngle;
+};
+
+// cbuffer
 struct Per_object_data {
     XMFLOAT4X4 worldMatrix;
 };
 
-// cbuffer element
-// TODO: Combine these before sending to the GPU?
+// cbuffer
+// TODO: Combine matrices before sending to the GPU?
 struct Per_frame_data {
     XMFLOAT4X4 viewMatrix;
     XMFLOAT4X4 projectionMatrix;
 };
 
+// cbuffer
+struct Lighting_data {
+    XMFLOAT3 cameraPosition;
+    int lightCount;
+
+    XMFLOAT3 ambientLight;
+    float pad0;
+
+    Light_source_data lights[MAX_LIGHTS];
+};
+
 enum class Sampler_state_type {
-    LINEAR_WRAP = 0, // TODO: Why this? Add more?
+    LINEAR_WRAP = 0,
     COUNT
 };
 
@@ -52,8 +74,10 @@ class Renderer {
 
     ID3D11Buffer *perObjectBuffer;
     ID3D11Buffer *perFrameBuffer;
+    ID3D11Buffer *lightingBuffer;
 
     Per_frame_data currentFrameData;
+    Lighting_data currentLightingData;
     std::vector<Draw_command> drawCommands;
 
     bool CreateInterface(HWND hWnd);
@@ -65,6 +89,7 @@ class Renderer {
 
     void UpdatePerObjectBuffer(const Per_object_data &data);
     void UpdatePerFrameBuffer();
+    void UpdateLightingBuffer();
     void BindCommonSamplerStates();
 
 public:
@@ -84,6 +109,9 @@ public:
 
     void SetViewMatrix(const XMMATRIX &viewMatrix);
     void SetProjectionMatrix(const XMMATRIX &projectionMatrix);
+    void SetCameraPosition(const XMFLOAT3 &position);
+    void SetAmbientLightColour(const XMFLOAT3 &colour);
+    void SetLightSourceData(const std::vector<Light_source_data> &lightsData);
 };
 
 #endif

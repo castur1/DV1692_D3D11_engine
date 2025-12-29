@@ -32,12 +32,13 @@ public:
     T *GetComponent() {
         for (auto &component : this->components) {
             T *ptr = dynamic_cast<T *>(component.get());
-            if (ptr != nullptr)
-                return ptr;
+            if (ptr) return ptr;
         }
 
         return nullptr;
     }
+
+    Scene *GetScene() const;
 };
 
 #endif

@@ -25,7 +25,7 @@ void CameraController::Update(float deltaTime) {
         return;
 
     Transform *transform = this->GetOwner()->GetComponent<Transform>();
-    if (transform == nullptr) {
+    if (!transform) {
         LogError("Missing Transform component on owner");
         return;
     }
@@ -86,9 +86,10 @@ void CameraController::Update(float deltaTime) {
     transform->SetRotation(rotation);
 
     forward = rotationMatrix.r[2];
-    XMMATRIX viewMatrix = XMMatrixLookToLH(positionVector, forward, up); // TODO: Something about re-orthonormalization?
+    XMMATRIX viewMatrix = XMMatrixLookToLH(positionVector, forward, up);
 
     this->renderer->SetViewMatrix(viewMatrix);
+    this->renderer->SetCameraPosition(position);
 }
 
 void CameraController::Render(Renderer *renderer) {}

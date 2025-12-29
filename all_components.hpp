@@ -4,5 +4,7 @@
 #include "transform.hpp"
 #include "model_renderer.hpp"
 #include "camera_controller.hpp"
+#include "light_source.hpp"
+#include "lighting_system.hpp"
 
 #endif

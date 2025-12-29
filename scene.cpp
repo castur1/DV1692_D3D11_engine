@@ -1,5 +1,8 @@
 #include "scene.hpp"
 #include "entity.hpp"
+#include "light_source.hpp"
+#include "renderer.hpp"
+#include "transform.hpp"
 
 Scene::Scene() {}
 

@@ -19,7 +19,7 @@ void ModelRenderer::Render(Renderer *renderer) {
         return;
 
     Transform *transform = this->GetOwner()->GetComponent<Transform>();
-    if (transform == nullptr) {
+    if (!transform) {
         LogError("Missing Transform component on owner");
         return;
     }
@@ -28,7 +28,7 @@ void ModelRenderer::Render(Renderer *renderer) {
         const auto &subModel = this->model->subModels[i];
 
         MaterialPtr material = this->materials[i];
-        if (material == nullptr)
+        if (!material)
             material = subModel.material;
 
         Draw_command command{};

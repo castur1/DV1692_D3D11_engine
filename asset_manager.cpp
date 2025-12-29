@@ -108,7 +108,7 @@ bool AssetManager::LoadFileContents(const std::string &path, void **buffer, size
     *size = file.tellg();
     *buffer = malloc(*size);
 
-    if (*buffer == nullptr) {
+    if (!*buffer) {
         LogInfo("Failed to allocate memory for file '%s'\n", path.c_str());
         return false;
     }
@@ -191,7 +191,7 @@ TexturePtr AssetManager::LoadTexture(const std::string &path) {
     int width, height, components;
     unsigned char *data = stbi_load(fullPath.c_str(), &width, &height, &components, 4);
 
-    if (data == nullptr) {
+    if (!data) {
         LogInfo("Failed to load image file '%s': '%s'\n", path.c_str(), stbi_failure_reason());
         return this->defaultTexture;
     }

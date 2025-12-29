@@ -14,7 +14,9 @@ Renderer::Renderer()
       viewport{},
       perObjectBuffer{},
       perFrameBuffer{},
-      currentFrameData{} {
+      lightingBuffer{},
+      currentFrameData{},
+      currentLightingData{} {
     this->clearColour[0] = 0.3f;
     this->clearColour[1] = 0.0f;
     this->clearColour[2] = 0.0f;
@@ -29,6 +31,7 @@ Renderer::~Renderer() {
 
     SafeRelease(this->perFrameBuffer);
     SafeRelease(this->perObjectBuffer);
+    SafeRelease(this->lightingBuffer);
 
     for (int i = 0; i < (int)Sampler_state_type::COUNT; ++i)
         SafeRelease(this->samplerStates[i]);
@@ -206,6 +209,13 @@ bool Renderer::CreateConstantBuffers() {
         return false;
     }
 
+    bufferDesc.ByteWidth = sizeof(Lighting_data);
+    result = this->device->CreateBuffer(&bufferDesc, nullptr, &this->lightingBuffer);
+    if (FAILED(result)) {
+        LogError("Failed to create lighting constant buffer");
+        return false;
+    }
+
     LogInfo("   > Constant buffers created\n");
 
     return true;
@@ -256,8 +266,10 @@ void Renderer::UpdatePerObjectBuffer(const Per_object_data &data) {
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     HRESULT result = this->deviceContext->Map(this->perObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 
-    if (FAILED(result))
+    if (FAILED(result)) {
+        LogInfo("Failed to map per-object buffer\n");
         return;
+    }
 
     *(Per_object_data *)mappedResource.pData = data;
     this->deviceContext->Unmap(this->perObjectBuffer, 0);
@@ -267,11 +279,26 @@ void Renderer::UpdatePerFrameBuffer() {
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     HRESULT result = this->deviceContext->Map(this->perFrameBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 
-    if (FAILED(result))
+    if (FAILED(result)) {
+        LogInfo("Failed to map per-frame buffer\n");
         return;
+    }
 
     *(Per_frame_data *)mappedResource.pData = this->currentFrameData;
     this->deviceContext->Unmap(this->perFrameBuffer, 0);
+}
+
+void Renderer::UpdateLightingBuffer() {
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    HRESULT result = this->deviceContext->Map(this->lightingBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+    if (FAILED(result)) {
+        LogInfo("Failed to map lighting buffer\n");
+        return;
+    }
+
+    *(Lighting_data *)mappedResource.pData = this->currentLightingData;
+    this->deviceContext->Unmap(this->lightingBuffer, 0);
 }
 
 void Renderer::BindCommonSamplerStates() {
@@ -310,6 +337,10 @@ void Renderer::Submit(const Draw_command &command) {
 void Renderer::Flush() {
     this->UpdatePerFrameBuffer();
     this->deviceContext->VSSetConstantBuffers(1, 1, &this->perFrameBuffer);
+    this->deviceContext->PSSetConstantBuffers(1, 1, &this->perFrameBuffer);
+
+    this->UpdateLightingBuffer();
+    this->deviceContext->PSSetConstantBuffers(2, 1, &this->lightingBuffer);
 
     Pipeline_state *currentPipelineState{};
     Material *currentMaterial{};
@@ -377,4 +408,19 @@ void Renderer::SetViewMatrix(const XMMATRIX &viewMatrix) {
 
 void Renderer::SetProjectionMatrix(const XMMATRIX &projectionMatrix) {
     XMStoreFloat4x4(&this->currentFrameData.projectionMatrix, XMMatrixTranspose(projectionMatrix));
+}
+
+void Renderer::SetCameraPosition(const XMFLOAT3 &position) {
+    this->currentLightingData.cameraPosition = position;
+}
+
+void Renderer::SetAmbientLightColour(const XMFLOAT3 &colour) {
+    this->currentLightingData.ambientLight = colour;
+}
+
+void Renderer::SetLightSourceData(const std::vector<Light_source_data> &lightsData) {
+    this->currentLightingData.lightCount = lightsData.size() < MAX_LIGHTS ? lightsData.size() : MAX_LIGHTS;
+
+    for (int i = 0; i < this->currentLightingData.lightCount; ++i)
+        this->currentLightingData.lights[i] = lightsData[i];
 }
