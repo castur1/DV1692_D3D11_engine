@@ -18,7 +18,7 @@ struct Draw_command {
     UINT startIndex;
     INT baseVertex;
 
-    Material *material;
+    MaterialPtr material;
 
     XMFLOAT4X4 worldMatrix;
 };

@@ -1,5 +1,9 @@
 #include <Windows.h>
 
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #include "application.hpp"
 #include "logging.hpp"
 
@@ -13,11 +17,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         app.Run();
     }
 
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+
+    OutputDebugStringW(L"\n[_CrtDumpMemoryLeaks start]\n");
+    _CrtDumpMemoryLeaks();
+    OutputDebugStringW(L"\n[_CrtDumpMemoryLeaks end]\n\n");
+    
     return 0;
 }
 
 /* TODO:
  *  - Window resizing. Recreate the Render Target View and such when the WM_SIZE is caught?
- *  - Add the debug code to the end of wWinMain
  *  - Better error handling
  */

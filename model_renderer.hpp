@@ -11,7 +11,7 @@ class ModelRenderer : public Component {
     std::vector<MaterialPtr> materials;
 
 public:
-    ModelRenderer(Entity *owner, bool isActive, Model *model, const std::vector<MaterialPtr> &materials = {});
+    ModelRenderer(Entity *owner, bool isActive, ModelPtr model, const std::vector<MaterialPtr> &materials = {});
     ~ModelRenderer();
 
     void Update(float deltaTime) override;

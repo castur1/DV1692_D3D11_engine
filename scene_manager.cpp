@@ -19,26 +19,33 @@ Scene *SceneManager::AddBlankScene(const std::string &name) {
 void SceneManager::CreateScenes(Renderer *renderer, AssetManager *assetManager) {
     Scene *scene = this->AddBlankScene("demo_0");
 
-    ModelPtr model = assetManager->LoadModel("models/suzanne/Suzanne.obj");
+    ModelPtr model = assetManager->LoadModel("models/apple/apple.obj");
 
     float r2d = XM_PI / 180.0f;
 
     Entity *entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT3(0.0f, -90 * r2d, 0.0f), XMFLOAT3(2.0f, 2.0f, 2.0f));
-    entity->AddComponent<ModelRenderer>(model.get());
+    entity->AddComponent<Transform>(XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT3(0.0f, -90 * r2d, 0.0f), XMFLOAT3(2.0f, 2.0f, 2.0f));
+    entity->AddComponent<ModelRenderer>(model);
+
+    model = assetManager->LoadModel("models/suzanne/Suzanne.obj");
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(3.0f, -1.0f, -2.0f), XMFLOAT3(0.0f, -45 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
-    entity->AddComponent<ModelRenderer>(model.get());
+    entity->AddComponent<Transform>(XMFLOAT3(3.0f, 1.0f, -2.0f), XMFLOAT3(0.0f, -45 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<ModelRenderer>(model);
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(-3.0f, -1.0f, -2.0f), XMFLOAT3(0.0f, -135 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
-    entity->AddComponent<ModelRenderer>(model.get());
+    entity->AddComponent<Transform>(XMFLOAT3(-3.0f, 1.0f, -2.0f), XMFLOAT3(0.0f, -135 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<ModelRenderer>(model);
+
+    model = assetManager->LoadModel("models/quad/quad.obj");
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(0.0f, 0.0f, -8.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<Transform>()->SetScale({20.0f, 1.0f, 20.0f});
+    entity->AddComponent<ModelRenderer>(model);
+
+    entity = scene->AddEntity();
+    entity->AddComponent<Transform>(XMFLOAT3(0.0f, 2.0f, -8.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
     entity->AddComponent<CameraController>(renderer);
-
 }
 
 void SceneManager::ChangeScene(const std::string &name) {

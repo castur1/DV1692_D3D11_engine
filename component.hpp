@@ -11,7 +11,7 @@ public:
     bool isActive;
 
     Component(Entity *owner, bool isActive);
-    ~Component();
+    virtual ~Component();
 
     virtual void Update(float deltaTime) = 0;
     virtual void Render(Renderer *renderer) = 0;

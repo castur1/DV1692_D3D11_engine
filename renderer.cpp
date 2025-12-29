@@ -10,6 +10,7 @@ Renderer::Renderer()
       renderTargetView{},
       depthStencilTexture{},
       depthStencilView{},
+      samplerStates{},
       viewport{},
       perObjectBuffer{},
       perFrameBuffer{},
@@ -24,6 +25,8 @@ Renderer::Renderer()
 }
 
 Renderer::~Renderer() {
+    this->drawCommands.clear();
+
     SafeRelease(this->perFrameBuffer);
     SafeRelease(this->perObjectBuffer);
 
@@ -33,9 +36,32 @@ Renderer::~Renderer() {
     SafeRelease(this->depthStencilView);
     SafeRelease(this->depthStencilTexture);
     SafeRelease(this->renderTargetView);
+
+    if (this->deviceContext) {
+        this->deviceContext->ClearState();
+        this->deviceContext->Flush();
+
+        this->deviceContext->Release();
+    }
+
     SafeRelease(this->swapChain);
-    SafeRelease(this->deviceContext);
-    SafeRelease(this->device);
+
+    if (this->device) {
+#ifdef _DEBUG
+        ID3D11Debug *debugDevice{};
+        HRESULT result = this->device->QueryInterface(__uuidof(ID3D11Debug), (void**)&debugDevice);
+
+        if (SUCCEEDED(result)) {
+            OutputDebugStringW(L"\n[ReportLiveDeviceObjects start]\n");
+            debugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
+            OutputDebugStringW(L"[ReportLiveDeviceObjects end]\n\n");
+
+            debugDevice->Release();
+        }
+#endif
+
+        this->device->Release();
+    }
 }
 
 bool Renderer::CreateInterface(HWND hWnd) {
@@ -303,7 +329,7 @@ void Renderer::Flush() {
             this->deviceContext->PSSetShader(pipelineState->pixelShader, nullptr, 0);
         }
 
-        Material *material = command.material;
+        Material *material = command.material.get();
         if (material != currentMaterial) {
             currentMaterial = material;
 
