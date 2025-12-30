@@ -14,10 +14,11 @@ Renderer::Renderer()
       viewport{},
       perObjectBuffer{},
       perFrameBuffer{},
+      perMaterialBuffer{},
       lightingBuffer{},
       currentFrameData{},
       currentLightingData{} {
-    this->clearColour[0] = 0.3f;
+    this->clearColour[0] = 0.0f;
     this->clearColour[1] = 0.0f;
     this->clearColour[2] = 0.0f;
     this->clearColour[3] = 1.0f;
@@ -31,6 +32,7 @@ Renderer::~Renderer() {
 
     SafeRelease(this->perFrameBuffer);
     SafeRelease(this->perObjectBuffer);
+    SafeRelease(this->perMaterialBuffer);
     SafeRelease(this->lightingBuffer);
 
     for (int i = 0; i < (int)Sampler_state_type::COUNT; ++i)
@@ -209,6 +211,13 @@ bool Renderer::CreateConstantBuffers() {
         return false;
     }
 
+    bufferDesc.ByteWidth = sizeof(Per_material_data);
+    result = this->device->CreateBuffer(&bufferDesc, nullptr, &this->perMaterialBuffer);
+    if (FAILED(result)) {
+        LogError("Failed to create per-material constant buffer");
+        return false;
+    }
+
     bufferDesc.ByteWidth = sizeof(Lighting_data);
     result = this->device->CreateBuffer(&bufferDesc, nullptr, &this->lightingBuffer);
     if (FAILED(result)) {
@@ -275,7 +284,7 @@ void Renderer::UpdatePerObjectBuffer(const Per_object_data &data) {
     this->deviceContext->Unmap(this->perObjectBuffer, 0);
 }
 
-void Renderer::UpdatePerFrameBuffer() {
+void Renderer::UpdatePerFrameBuffer(const Per_frame_data &data) {
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     HRESULT result = this->deviceContext->Map(this->perFrameBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 
@@ -284,11 +293,24 @@ void Renderer::UpdatePerFrameBuffer() {
         return;
     }
 
-    *(Per_frame_data *)mappedResource.pData = this->currentFrameData;
+    *(Per_frame_data *)mappedResource.pData = data;
     this->deviceContext->Unmap(this->perFrameBuffer, 0);
 }
 
-void Renderer::UpdateLightingBuffer() {
+void Renderer::UpdatePerMaterialBuffer(const Per_material_data &data) {
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    HRESULT result = this->deviceContext->Map(this->perMaterialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+
+    if (FAILED(result)) {
+        LogInfo("Failed to map per-material buffer\n");
+        return;
+    }
+
+    *(Per_material_data *)mappedResource.pData = data;
+    this->deviceContext->Unmap(this->perMaterialBuffer, 0);
+}
+
+void Renderer::UpdateLightingBuffer(const Lighting_data &data) {
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     HRESULT result = this->deviceContext->Map(this->lightingBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 
@@ -297,7 +319,7 @@ void Renderer::UpdateLightingBuffer() {
         return;
     }
 
-    *(Lighting_data *)mappedResource.pData = this->currentLightingData;
+    *(Lighting_data *)mappedResource.pData = data;
     this->deviceContext->Unmap(this->lightingBuffer, 0);
 }
 
@@ -335,11 +357,11 @@ void Renderer::Submit(const Draw_command &command) {
 }
 
 void Renderer::Flush() {
-    this->UpdatePerFrameBuffer();
+    this->UpdatePerFrameBuffer(this->currentFrameData);
     this->deviceContext->VSSetConstantBuffers(1, 1, &this->perFrameBuffer);
     this->deviceContext->PSSetConstantBuffers(1, 1, &this->perFrameBuffer);
 
-    this->UpdateLightingBuffer();
+    this->UpdateLightingBuffer(this->currentLightingData);
     this->deviceContext->PSSetConstantBuffers(2, 1, &this->lightingBuffer);
 
     Pipeline_state *currentPipelineState{};
@@ -364,7 +386,10 @@ void Renderer::Flush() {
         if (material != currentMaterial) {
             currentMaterial = material;
 
+            this->UpdatePerMaterialBuffer({material->specularColour, material->shininess});
+
             this->deviceContext->PSSetShaderResources(0, 1, &material->diffuseTexture->shaderResourceView);
+            this->deviceContext->PSSetConstantBuffers(3, 1, &this->perMaterialBuffer);
         }
 
         ID3D11Buffer *vertexBuffer = command.vertexBuffer;

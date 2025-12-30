@@ -43,7 +43,7 @@ bool Application::Initialize() {
 
     LogInfo("Initializing...\n");
 
-    if (!this->window.Initialize(1280, 720, L"Hello, World!"))
+    if (!this->window.Initialize(1280, 720, L"DV1692 D3D11 engine demo"))
         return false;
     
     if (!this->renderer.Initialize(this->window.GetHandle()))

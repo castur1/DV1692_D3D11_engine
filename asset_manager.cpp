@@ -80,8 +80,8 @@ void AssetManager::CreateDefaultMaterial() {
     this->defaultMaterial->name = "";
     this->defaultMaterial->pipelineState = &this->defaultPipelineState;
     this->defaultMaterial->diffuseTexture = this->defaultTexture;
-    this->defaultMaterial->diffuseColour = {0.0f, 0.0f, 0.0f, 1.0f};
-    this->defaultMaterial->specularExponent = 1.0f;
+    this->defaultMaterial->specularColour = {1.0f, 1.0f, 1.0f};
+    this->defaultMaterial->shininess = 100.0f;
 
     this->materialCache[""] = this->defaultMaterial;
 }
@@ -248,10 +248,6 @@ TexturePtr AssetManager::LoadTexture(const std::string &path) {
     return texturePtr;
 }
 
-//MaterialPtr AssetManager::LoadMaterial() {
-//    return nullptr;
-//}
-
 ModelPtr AssetManager::LoadModel(const std::string &path) {
     auto iter = this->modelCache.find(path);
     if (iter != this->modelCache.end()) {
@@ -304,13 +300,15 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
             newMaterial->diffuseTexture = this->LoadTexture(baseDir + materials[i].diffuse_texname);
         }
 
-        newMaterial->diffuseColour = {
-            materials[i].diffuse[0], 
-            materials[i].diffuse[1], 
-            materials[i].diffuse[2], 
-            1.0f
+        newMaterial->specularColour = {
+            materials[i].specular[0], 
+            materials[i].specular[1], 
+            materials[i].specular[2]
         };
-        newMaterial->specularExponent = materials[i].shininess;
+
+        newMaterial->shininess = materials[i].shininess <= 1.0f 
+            ? this->defaultMaterial->shininess 
+            : materials[i].shininess;
 
         this->materialCache[materialName] = newMaterial;
         modelMaterials[i] = newMaterial;
@@ -437,6 +435,16 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
     LogInfo("Model '%s' loaded successfully\n", path.c_str());
 
     return newModel;
+}
+
+MaterialPtr AssetManager::CreateDefaultMaterialCopy(const std::string &name) {
+    MaterialPtr materialPtr = std::make_shared<Material>(*this->defaultMaterial);
+
+    materialPtr->name = name;
+
+    this->materialCache[name] = materialPtr;
+
+    return materialPtr;
 }
 
 Pipeline_state *AssetManager::GetDefaultPipelineState() {

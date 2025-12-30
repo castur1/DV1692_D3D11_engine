@@ -36,8 +36,9 @@ public:
     bool LoadShaders(const std::string &vertexShaderPath, const std::string &pixelShaderPath,
         ID3D11VertexShader **vertexShader, ID3D11PixelShader **pixelShader, ID3D11InputLayout **inputLayout);
     TexturePtr LoadTexture(const std::string &path);
-    // MaterialPtr LoadMaterial();
     ModelPtr LoadModel(const std::string &path);
+
+    MaterialPtr CreateDefaultMaterialCopy(const std::string &name);
 
     Pipeline_state *GetDefaultPipelineState();
     TexturePtr GetDefaultTexture();

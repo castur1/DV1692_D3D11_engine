@@ -52,7 +52,7 @@ void LightingSystem::Update(float deltaTime) {
                 XMVECTOR forward = XMVector3Normalize(rotationMatrix.r[2]);
                 XMStoreFloat3(&data.direction, forward);
 
-                data.spotLightAngle = lightSource->spotLightAngle;
+                data.spotLightCosHalfAngle = cosf(lightSource->spotLightAngle / 2.0f);
             } break;
         }
 

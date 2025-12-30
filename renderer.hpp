@@ -31,7 +31,7 @@ struct Light_source_data {
     XMFLOAT3 direction;
     int type;
     XMFLOAT3 colour;
-    float spotLightAngle;
+    float spotLightCosHalfAngle;
 };
 
 // cbuffer
@@ -44,6 +44,12 @@ struct Per_object_data {
 struct Per_frame_data {
     XMFLOAT4X4 viewMatrix;
     XMFLOAT4X4 projectionMatrix;
+};
+
+// cbuffer
+struct Per_material_data {
+    XMFLOAT3 specularColour;
+    float shininess;
 };
 
 // cbuffer
@@ -74,6 +80,7 @@ class Renderer {
 
     ID3D11Buffer *perObjectBuffer;
     ID3D11Buffer *perFrameBuffer;
+    ID3D11Buffer *perMaterialBuffer;
     ID3D11Buffer *lightingBuffer;
 
     Per_frame_data currentFrameData;
@@ -88,8 +95,9 @@ class Renderer {
     void SetViewport(HWND hWnd);
 
     void UpdatePerObjectBuffer(const Per_object_data &data);
-    void UpdatePerFrameBuffer();
-    void UpdateLightingBuffer();
+    void UpdatePerFrameBuffer(const Per_frame_data &data);
+    void UpdatePerMaterialBuffer(const Per_material_data &data);
+    void UpdateLightingBuffer(const Lighting_data &data);
     void BindCommonSamplerStates();
 
 public:
