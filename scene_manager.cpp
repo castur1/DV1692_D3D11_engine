@@ -27,7 +27,6 @@ void SceneManager::CreateScenes(Renderer *renderer, AssetManager *assetManager) 
     entity->AddComponent<LightingSystem>(renderer)->ambientColour = {0.05f, 0.08f, 0.09f};
 
     entity = scene->AddEntity();
-    //entity->AddComponent<Transform>()->SetPosition({0.0f, 4.0f, -4.0f});
     entity->AddComponent<Transform>()->SetRotation({XM_PIDIV4, XM_PIDIV4, 0.0f});
     entity->AddComponent<LightSource>(Light_source_type::DIRECTIONAL, XMFLOAT3(1.0f, 0.9f, 0.5f), 1.5f);
 
@@ -35,28 +34,90 @@ void SceneManager::CreateScenes(Renderer *renderer, AssetManager *assetManager) 
     entity->AddComponent<Transform>(XMFLOAT3(9.0f, 3.0f, 9.0f), XMFLOAT3(XM_PIDIV4, 5 * XM_PIDIV4, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
     entity->AddComponent<LightSource>(Light_source_type::SPOT, XMFLOAT3(1.0f, 0.0f, 0.0f), 15.0f);
 
+    entity = scene->AddEntity();
+    entity->AddComponent<Transform>()->SetPosition({7.0f, 0.5f, 5.0f});
+    entity->AddComponent<LightSource>(Light_source_type::POINT, XMFLOAT3(0.0f, 0.0f, 1.0f), 8.0f);
+
     ModelPtr model = assetManager->LoadModel("models/apple/apple.obj");
 
-    float r2d = XM_PI / 180.0f;
-
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(0.0f, -0.15f, 0.0f), XMFLOAT3(0.0f, -90 * r2d, 0.0f), XMFLOAT3(2.0f, 2.0f, 2.0f));
+    entity->AddComponent<Transform>(XMFLOAT3(0.0f, -0.15f, 0.0f), XMFLOAT3(0.0f, XM_PIDIV4, 0.0f), XMFLOAT3(2.0f, 2.0f, 2.0f));
     entity->AddComponent<ModelRenderer>(model);
 
     model = assetManager->LoadModel("models/suzanne/Suzanne.obj");
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(3.0f, -0.15f, -2.0f), XMFLOAT3(0.0f, -45 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<Transform>();
     entity->AddComponent<ModelRenderer>(model);
+    entity->AddComponent<InterpMove>(
+        XMFLOAT3(3.0f, -0.15f, -2.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(1.0f, 1.0f, 1.0f),
+        XMFLOAT3(3.0f, 1.0f, -2.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(1.0f, 1.0f, 1.0f),
+        2.0f,
+        0.0f,
+        Easing_function_type::IN_OUT_SINE,
+        true,
+        false,
+        true,
+        true
+    );
+    entity->AddComponent<InterpMove>(
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(1.0f, 1.0f, 1.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(0.0f, XM_2PI, 0.0f),
+        XMFLOAT3(1.0f, 1.0f, 1.0f),
+        4.5f,
+        0.0f,
+        Easing_function_type::LINEAR,
+        false,
+        true,
+        false,
+        true
+    );
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(-3.0f, -0.15f, -2.0f), XMFLOAT3(0.0f, -135 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<Transform>();
     entity->AddComponent<ModelRenderer>(model);
+    entity->AddComponent<InterpMove>(
+        XMFLOAT3(-3.0f, -0.15f, -2.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(1.0f, 1.0f, 1.0f),
+        XMFLOAT3(-3.0f, 1.0f, -2.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(1.0f, 1.0f, 1.0f),
+        2.0f,
+        0.0f,
+        Easing_function_type::IN_OUT_SINE,
+        true,
+        false,
+        true,
+        true
+    );
+    entity->AddComponent<InterpMove>(
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(1.0f, 1.0f, 1.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(0.0f, XM_2PI, 0.0f),
+        XMFLOAT3(1.0f, 1.0f, 1.0f),
+        4.5f,
+        0.0f,
+        Easing_function_type::LINEAR,
+        false,
+        true,
+        false,
+        true
+    );
 
     model = assetManager->LoadModel("models/spot/Spot.obj");
 
     entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(6.0f, 0.0f, 6.0f), XMFLOAT3(0.0f, -45 * r2d, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+    entity->AddComponent<Transform>(XMFLOAT3(6.0f, 0.0f, 6.0f), XMFLOAT3(0.0f, -XM_PIDIV4, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
     entity->AddComponent<ModelRenderer>(model);
 
     model = assetManager->LoadModel("models/quad/quad.obj");
