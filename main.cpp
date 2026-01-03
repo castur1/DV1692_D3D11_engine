@@ -29,4 +29,5 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 /* TODO:
  *  - Window resizing. Recreate the Render Target View and such when the WM_SIZE is caught?
  *  - Better error handling
+ *  - READ THROUGH THE REQUIREMENTS! I currently don't get the ambient and diffuse from the MTL.
  */

@@ -48,8 +48,12 @@ struct Per_frame_data {
 
 // cbuffer
 struct Per_material_data {
-    XMFLOAT3 specularColour;
-    float shininess;
+    XMFLOAT3 materialAmbient;
+    float pad0;
+    XMFLOAT3 materialDiffuse;
+    float pad1;
+    XMFLOAT3 materialSpecular;
+    float materialSpecularExponent;
 };
 
 // cbuffer

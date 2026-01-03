@@ -10,12 +10,11 @@ struct Light_data {
     float3 direction;
     int type;
     float3 colour;
-    float spotLightCosHalfAngle; // TODO: Pre-compute cosine of half-angle?
+    float spotLightCosHalfAngle;
 };
 
 cbuffer Per_object : register(b0) {
     float4x4 worldMatrix; // TODO: non-uniform scaling will distort normals. "Inverse transpose world matrix"?
-    // TODO: specular and shininess
 }
 
 cbuffer Per_frame : register(b1) {
@@ -24,8 +23,12 @@ cbuffer Per_frame : register(b1) {
 }
 
 cbuffer Per_material_data : register(b3) {
-    float3 specularColour;
-    float shininess;
+    float3 materialAmbient;
+    float pad1;
+    float3 materialDiffuse;
+    float pad2;
+    float3 materialSpecular;
+    float materialSpecularExponent;
 };
 
 cbuffer Lighting : register(b2) {
@@ -52,8 +55,8 @@ float4 main(Pixel_shader_input input) : SV_TARGET {
     float3 viewV = normalize(cameraPosition - input.worldPosition);
 
     float3 ambient  = ambientLight;
-    float3 diffuse  = 0;
-    float3 specular = 0;
+    float3 diffuse  = float3(0.0f, 0.0f, 0.0f);
+    float3 specular = float3(0.0f, 0.0f, 0.0f);
     
     for (int i = 0; i < lightCount; ++i) {
         Light_data lightSource = lights[i];
@@ -95,10 +98,13 @@ float4 main(Pixel_shader_input input) : SV_TARGET {
         if (diffuseFactor > 0) {
             float3 reflectionV = reflect(-lightV, normalV);
 
-            float specularFactor = pow(saturate(dot(reflectionV, viewV)), shininess);
-            specular += specularFactor * lightStrength * specularColour; // CONTINUE HERE! Really bright, why?
+            float specularFactor = pow(saturate(dot(reflectionV, viewV)), materialSpecularExponent);
+            specular += specularFactor * lightStrength * materialSpecular;
         }
     }
+    
+    ambient *= materialAmbient;
+    diffuse *= materialDiffuse;
     
     float3 finalColour = (ambient + diffuse) * textureColour.rgb + specular;
     

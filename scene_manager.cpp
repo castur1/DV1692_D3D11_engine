@@ -30,15 +30,17 @@ void SceneManager::CreateScenes(Renderer *renderer, AssetManager *assetManager) 
     entity->AddComponent<Transform>()->SetRotation({XM_PIDIV4, XM_PIDIV4, 0.0f});
     entity->AddComponent<LightSource>(Light_source_type::DIRECTIONAL, XMFLOAT3(1.0f, 0.9f, 0.5f), 1.5f);
 
-    entity = scene->AddEntity();
-    entity->AddComponent<Transform>(XMFLOAT3(9.0f, 3.0f, 9.0f), XMFLOAT3(XM_PIDIV4, 5 * XM_PIDIV4, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
-    entity->AddComponent<LightSource>(Light_source_type::SPOT, XMFLOAT3(1.0f, 0.0f, 0.0f), 15.0f);
-
-    entity = scene->AddEntity();
-    entity->AddComponent<Transform>()->SetPosition({7.0f, 0.5f, 5.0f});
-    entity->AddComponent<LightSource>(Light_source_type::POINT, XMFLOAT3(0.0f, 0.0f, 1.0f), 8.0f);
-
     ModelPtr model = assetManager->LoadModel("models/apple/apple.obj");
+
+    entity = scene->AddEntity();
+    entity->AddComponent<Transform>(XMFLOAT3(9.0f, 3.0f, 9.0f), XMFLOAT3(XM_PIDIV4, 5 * XM_PIDIV4, 0.0f), XMFLOAT3(0.1f, 0.1f, 0.1f));
+    entity->AddComponent<LightSource>(Light_source_type::SPOT, XMFLOAT3(1.0f, 0.0f, 0.0f), 15.0f);
+    entity->AddComponent<ModelRenderer>(model, std::vector<MaterialPtr>{assetManager->GetDefaultMaterial()});
+
+    entity = scene->AddEntity();
+    entity->AddComponent<Transform>(XMFLOAT3(0.0f, 1.0f, 3.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.1f, 0.1f, 0.1f));
+    entity->AddComponent<LightSource>(Light_source_type::POINT, XMFLOAT3(0.0f, 0.0f, 1.0f), 5.0f);
+    entity->AddComponent<ModelRenderer>(model, std::vector<MaterialPtr>{assetManager->GetDefaultMaterial()});
 
     entity = scene->AddEntity();
     entity->AddComponent<Transform>(XMFLOAT3(0.0f, -0.15f, 0.0f), XMFLOAT3(0.0f, XM_PIDIV4, 0.0f), XMFLOAT3(2.0f, 2.0f, 2.0f));
@@ -124,7 +126,7 @@ void SceneManager::CreateScenes(Renderer *renderer, AssetManager *assetManager) 
     MaterialPtr grassMaterial = assetManager->CreateDefaultMaterialCopy("grass");
     grassMaterial->diffuseTexture = assetManager->LoadTexture("textures/Grass004_1K-JPG_Color.jpg");
     grassMaterial->specularColour = {0.2f, 0.3f, 0.1f};
-    grassMaterial->shininess = 200.0f;
+    grassMaterial->specularExponent = 200.0f;
 
     entity = scene->AddEntity();
     entity->AddComponent<Transform>()->SetScale({20.0f, 1.0f, 20.0f});

@@ -64,8 +64,10 @@ struct Material {
 
     TexturePtr diffuseTexture;
 
+    XMFLOAT3 ambientColour;
+    XMFLOAT3 diffuseColour;
     XMFLOAT3 specularColour;
-    float shininess;
+    float specularExponent;
 };
 
 using MaterialPtr = std::shared_ptr<Material>;

@@ -386,7 +386,12 @@ void Renderer::Flush() {
         if (material != currentMaterial) {
             currentMaterial = material;
 
-            this->UpdatePerMaterialBuffer({material->specularColour, material->shininess});
+            Per_material_data materialData{};
+            materialData.materialAmbient = material->ambientColour;
+            materialData.materialDiffuse = material->diffuseColour;
+            materialData.materialSpecular = material->specularColour;
+            materialData.materialSpecularExponent = material->specularExponent;
+            this->UpdatePerMaterialBuffer(materialData);
 
             this->deviceContext->PSSetShaderResources(0, 1, &material->diffuseTexture->shaderResourceView);
             this->deviceContext->PSSetConstantBuffers(3, 1, &this->perMaterialBuffer);

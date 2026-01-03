@@ -80,8 +80,10 @@ void AssetManager::CreateDefaultMaterial() {
     this->defaultMaterial->name = "";
     this->defaultMaterial->pipelineState = &this->defaultPipelineState;
     this->defaultMaterial->diffuseTexture = this->defaultTexture;
+    this->defaultMaterial->ambientColour = {1.0f, 1.0f, 1.0f};
+    this->defaultMaterial->diffuseColour = {1.0f, 1.0f, 1.0f};
     this->defaultMaterial->specularColour = {1.0f, 1.0f, 1.0f};
-    this->defaultMaterial->shininess = 100.0f;
+    this->defaultMaterial->specularExponent = 32.0f;
 
     this->materialCache[""] = this->defaultMaterial;
 }
@@ -300,15 +302,19 @@ ModelPtr AssetManager::LoadModel(const std::string &path) {
             newMaterial->diffuseTexture = this->LoadTexture(baseDir + materials[i].diffuse_texname);
         }
 
-        newMaterial->specularColour = {
-            materials[i].specular[0], 
-            materials[i].specular[1], 
-            materials[i].specular[2]
-        };
+        newMaterial->ambientColour = XMFLOAT3(materials[i].ambient);
 
-        newMaterial->shininess = materials[i].shininess <= 1.0f 
-            ? this->defaultMaterial->shininess 
-            : materials[i].shininess;
+        if (materials[i].diffuse[0] == 0.0f && materials[i].diffuse[0] == 0.0f && materials[i].diffuse[0] == 0.0f)
+            newMaterial->diffuseColour = XMFLOAT3(1.0f, 1.0f, 1.0f);
+        else
+            newMaterial->diffuseColour = XMFLOAT3(materials[i].diffuse);
+
+        newMaterial->specularColour = XMFLOAT3(materials[i].specular);
+
+        if (materials[i].shininess <= 1.0f)
+            newMaterial->specularExponent = this->defaultMaterial->specularExponent;
+        else
+            newMaterial->specularExponent = materials[i].shininess;
 
         this->materialCache[materialName] = newMaterial;
         modelMaterials[i] = newMaterial;
