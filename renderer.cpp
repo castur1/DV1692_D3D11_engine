@@ -51,7 +51,10 @@ Renderer::~Renderer() {
         this->deviceContext->Release();
     }
 
-    SafeRelease(this->swapChain);
+    if (this->swapChain) {
+        this->swapChain->SetFullscreenState(false, nullptr);
+        this->swapChain->Release();
+    }
 
     if (this->device) {
 #ifdef _DEBUG
@@ -90,7 +93,7 @@ bool Renderer::CreateInterface(HWND hWnd) {
     swapChainDesc.OutputWindow = hWnd;
     swapChainDesc.Windowed = TRUE;
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-    swapChainDesc.Flags = 0;
+    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
     UINT flags = 0;
 #if _DEBUG
