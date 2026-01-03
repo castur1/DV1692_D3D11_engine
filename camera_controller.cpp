@@ -92,7 +92,10 @@ void CameraController::Update(float deltaTime) {
     this->renderer->SetCameraPosition(position);
 }
 
-void CameraController::Render(Renderer *renderer) {}
+void CameraController::Render(Renderer *renderer) {
+    // TODO: There's no need to update this every frame
+    this->SetProjection(this->fieldOfView, renderer->GetAspectRatio(), this->nearPlane, this->farPlane);
+}
 
 void CameraController::SetProjection(float fieldOfView, float aspectRatio, float nearPlane, float farPlane) {
     this->fieldOfView = fieldOfView;

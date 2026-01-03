@@ -17,7 +17,9 @@ Renderer::Renderer()
       perMaterialBuffer{},
       lightingBuffer{},
       currentFrameData{},
-      currentLightingData{} {
+      currentLightingData{},
+      width(0),
+      height(0) {
     this->clearColour[0] = 0.0f;
     this->clearColour[1] = 0.0f;
     this->clearColour[2] = 0.0f;
@@ -90,10 +92,9 @@ bool Renderer::CreateInterface(HWND hWnd) {
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     swapChainDesc.Flags = 0;
 
-#if _DEBUG
-    UINT flags = D3D11_CREATE_DEVICE_DEBUG;
-#else
     UINT flags = 0;
+#if _DEBUG
+    flags |= D3D11_CREATE_DEVICE_DEBUG; 
 #endif
 
     D3D_FEATURE_LEVEL featureLevels[] = {
@@ -149,12 +150,7 @@ bool Renderer::CreateRenderTargetView() {
     return true;
 }
 
-bool Renderer::CreateDepthStencil(HWND hWnd) {
-    RECT clientRect;
-    GetClientRect(hWnd, &clientRect);
-    UINT width = clientRect.right - clientRect.left;
-    UINT height = clientRect.bottom - clientRect.top;
-
+bool Renderer::CreateDepthStencil(int width, int height) {
     D3D11_TEXTURE2D_DESC textureDesc{};
     textureDesc.Width = width;
     textureDesc.Height = height;
@@ -257,12 +253,7 @@ bool Renderer::CreateCommonSamplerStates() {
     return true;
 }
 
-void Renderer::SetViewport(HWND hWnd) {
-    RECT clientRect;
-    GetClientRect(hWnd, &clientRect);
-    UINT width = clientRect.right - clientRect.left;
-    UINT height = clientRect.bottom - clientRect.top;
-
+void Renderer::SetViewport(int width, int height) {
     this->viewport.TopLeftX = 0.0f;
     this->viewport.TopLeftY = 0.0f;
     this->viewport.Width = width;
@@ -330,13 +321,18 @@ void Renderer::BindCommonSamplerStates() {
 bool Renderer::Initialize(HWND hWnd) {
     LogInfo(" > Creating renderer...\n");
 
+    RECT clientRect;
+    GetClientRect(hWnd, &clientRect);
+    this->width = clientRect.right - clientRect.left;
+    this->height = clientRect.bottom - clientRect.top;
+
     if (!this->CreateInterface(hWnd))
         return false;
 
     if (!this->CreateRenderTargetView())
         return false;
 
-    if (!this->CreateDepthStencil(hWnd))
+    if (!this->CreateDepthStencil(this->width, this->height))
         return false;
 
     if (!this->CreateConstantBuffers())
@@ -345,9 +341,40 @@ bool Renderer::Initialize(HWND hWnd) {
     if (!this->CreateCommonSamplerStates())
         return false;
 
-    this->SetViewport(hWnd);
+    this->SetViewport(this->width, this->height);
 
     LogInfo(" > Renderer created\n");
+
+    return true;
+}
+
+bool Renderer::Resize(int width, int height) {
+    if (width <= 0 || height <= 0)
+        return false;
+
+    SafeRelease(this->renderTargetView);
+    SafeRelease(this->depthStencilView);
+    SafeRelease(this->depthStencilTexture);
+
+    this->deviceContext->ClearState();
+    this->deviceContext->Flush();
+
+    HRESULT result = this->swapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+    if (FAILED(result)) {
+        LogError("Failed to resize swap chain buffers");
+        return false;
+    }
+
+    if (!this->CreateRenderTargetView())
+        return false;
+
+    if (!this->CreateDepthStencil(width, height))
+        return false;
+
+    this->SetViewport(width, height);
+
+    this->width = width;
+    this->height = height;
 
     return true;
 }
@@ -432,6 +459,18 @@ ID3D11Device *Renderer::GetDevice() const {
     return this->device;
 }
 
+int Renderer::GetWidth() const {
+    return this->width;
+}
+
+int Renderer::GetHeight() const {
+    return this->height;
+}
+
+float Renderer::GetAspectRatio() const {
+    return (float)this->width / this->height;
+}
+
 void Renderer::SetViewMatrix(const XMMATRIX &viewMatrix) {
     XMStoreFloat4x4(&this->currentFrameData.viewMatrix, XMMatrixTranspose(viewMatrix));
 }
@@ -453,4 +492,15 @@ void Renderer::SetLightSourceData(const std::vector<Light_source_data> &lightsDa
 
     for (int i = 0; i < this->currentLightingData.lightCount; ++i)
         this->currentLightingData.lights[i] = lightsData[i];
+}
+
+void Renderer::ToggleFullscreen() {
+    this->swapChain->SetFullscreenState(!this->IsFullscreened(), nullptr);
+}
+
+bool Renderer::IsFullscreened() {
+    BOOL state;
+    this->swapChain->GetFullscreenState(&state, nullptr);
+
+    return state;
 }

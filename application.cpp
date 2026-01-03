@@ -66,8 +66,19 @@ void Application::Run() {
     while (!this->window.ShouldClose()) {
         this->window.ProcessMessages();
 
+        if (this->window.WasResized()) {
+            int width  = this->window.GetWidth();
+            int height = this->window.GetHeight();
+            this->renderer.Resize(width, height);
+
+            this->window.ClearResizeFlag();
+        }
+
         if (Input::IsKeyPressed(VK_ESCAPE))
             break;
+
+        if (Input::IsKeyPressed(VK_F4))
+            this->renderer.ToggleFullscreen();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float> elapsed = currentTime - previousTime;

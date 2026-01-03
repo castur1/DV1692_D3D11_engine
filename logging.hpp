@@ -6,6 +6,8 @@
 
 #include <Windows.h>
 
+// TODO: Indent helper?
+
 static inline const char *LogHelper(const char *path) {
     const char *slash = strrchr(path, '/');
     const char *backslash = strrchr(path, '\\');

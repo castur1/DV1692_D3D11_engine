@@ -32,15 +32,21 @@ void SceneManager::CreateScenes(Renderer *renderer, AssetManager *assetManager) 
 
     ModelPtr model = assetManager->LoadModel("models/apple/apple.obj");
 
+    MaterialPtr appleMaterial1 = assetManager->CreateDefaultMaterialCopy("apple1");
+    appleMaterial1->diffuseColour = {1.0f, 0.0f, 0.0f};
+
     entity = scene->AddEntity();
     entity->AddComponent<Transform>(XMFLOAT3(9.0f, 3.0f, 9.0f), XMFLOAT3(XM_PIDIV4, 5 * XM_PIDIV4, 0.0f), XMFLOAT3(0.1f, 0.1f, 0.1f));
     entity->AddComponent<LightSource>(Light_source_type::SPOT, XMFLOAT3(1.0f, 0.0f, 0.0f), 15.0f);
-    entity->AddComponent<ModelRenderer>(model, std::vector<MaterialPtr>{assetManager->GetDefaultMaterial()});
+    entity->AddComponent<ModelRenderer>(model, std::vector<MaterialPtr>{appleMaterial1});
+
+    MaterialPtr appleMaterial2 = assetManager->CreateDefaultMaterialCopy("apple2");
+    appleMaterial2->diffuseColour = {0.0f, 0.0f, 1.0f};
 
     entity = scene->AddEntity();
     entity->AddComponent<Transform>(XMFLOAT3(0.0f, 1.0f, 3.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.1f, 0.1f, 0.1f));
     entity->AddComponent<LightSource>(Light_source_type::POINT, XMFLOAT3(0.0f, 0.0f, 1.0f), 5.0f);
-    entity->AddComponent<ModelRenderer>(model, std::vector<MaterialPtr>{assetManager->GetDefaultMaterial()});
+    entity->AddComponent<ModelRenderer>(model, std::vector<MaterialPtr>{appleMaterial2});
 
     entity = scene->AddEntity();
     entity->AddComponent<Transform>(XMFLOAT3(0.0f, -0.15f, 0.0f), XMFLOAT3(0.0f, XM_PIDIV4, 0.0f), XMFLOAT3(2.0f, 2.0f, 2.0f));

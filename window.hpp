@@ -5,6 +5,10 @@
 
 class Window {
     bool shouldClose;
+    bool wasResized;
+
+    int width;
+    int height;
 
     HINSTANCE hInst;
     HWND hWnd;
@@ -19,6 +23,11 @@ public:
     void ProcessMessages();
     bool ShouldClose();
     HWND GetHandle() const;
+
+    bool WasResized() const;
+    void ClearResizeFlag();
+    int GetWidth() const;
+    int GetHeight() const;
 };
 
 #endif

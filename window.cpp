@@ -1,7 +1,13 @@
 #include "window.hpp"
 #include "logging.hpp"
 
-Window::Window() : shouldClose(true), hInst{}, hWnd{} {}
+Window::Window() 
+    : shouldClose(true), 
+      wasResized(false),
+      width(0),
+      height(0),
+      hInst{}, 
+      hWnd{} {}
 
 Window::~Window() {
     if (this->hWnd) DestroyWindow(this->hWnd);
@@ -67,6 +73,22 @@ HWND Window::GetHandle() const {
     return this->hWnd;
 }
 
+bool Window::WasResized() const {
+    return this->wasResized;
+}
+
+void Window::ClearResizeFlag() {
+    this->wasResized = false;
+}
+
+int Window::GetWidth() const {
+    return this->width;
+}
+
+int Window::GetHeight() const {
+    return this->height;
+}
+
 LRESULT CALLBACK Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     Window *window{};
     if (uMsg == WM_CREATE) {
@@ -77,6 +99,14 @@ LRESULT CALLBACK Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
     }
 
     switch (uMsg) {
+        case WM_SIZE: {
+            if (wParam != SIZE_MINIMIZED) {
+                window->width = LOWORD(lParam);
+                window->height = HIWORD(lParam);
+                window->wasResized = true;
+            }
+            return 0;
+        }
         case WM_QUIT:
         case WM_CLOSE: {
             window->shouldClose = true;

@@ -91,12 +91,15 @@ class Renderer {
     Lighting_data currentLightingData;
     std::vector<Draw_command> drawCommands;
 
+    int width;
+    int height;
+
     bool CreateInterface(HWND hWnd);
     bool CreateRenderTargetView();
-    bool CreateDepthStencil(HWND hWnd);
+    bool CreateDepthStencil(int width, int height);
     bool CreateConstantBuffers();
     bool CreateCommonSamplerStates();
-    void SetViewport(HWND hWnd);
+    void SetViewport(int width, int height);
 
     void UpdatePerObjectBuffer(const Per_object_data &data);
     void UpdatePerFrameBuffer(const Per_frame_data &data);
@@ -111,6 +114,7 @@ public:
     ~Renderer();
 
     bool Initialize(HWND hWnd);
+    bool Resize(int width, int height);
 
     void Submit(const Draw_command &drawCommand);
     void Flush();
@@ -118,12 +122,18 @@ public:
     void End();
 
     ID3D11Device *GetDevice() const;
+    int GetWidth() const;
+    int GetHeight() const;
+    float GetAspectRatio() const;
 
     void SetViewMatrix(const XMMATRIX &viewMatrix);
     void SetProjectionMatrix(const XMMATRIX &projectionMatrix);
     void SetCameraPosition(const XMFLOAT3 &position);
     void SetAmbientLightColour(const XMFLOAT3 &colour);
     void SetLightSourceData(const std::vector<Light_source_data> &lightsData);
+
+    void ToggleFullscreen();
+    bool IsFullscreened();
 };
 
 #endif
