@@ -6,11 +6,13 @@
 #include "renderer.hpp"
 
 CameraController::CameraController(Entity *owner, bool isActive, Renderer *renderer, float moveSpeed, 
-    float rotationSpeed, float fov, float aspectRatio, float nearPlane, float farPlane)
+    float rotationSpeed, float mouseSensitivity, float fov, float aspectRatio, float nearPlane, float farPlane)
     : Component(owner, isActive), 
       renderer(renderer), 
       moveSpeed(moveSpeed), 
       rotationSpeed(rotationSpeed),
+      mouseSensitivity(mouseSensitivity),
+      useMouseInput(true),
       fieldOfView(fov), 
       aspectRatio(aspectRatio), 
       nearPlane(nearPlane), 
@@ -36,6 +38,11 @@ void CameraController::Update(float deltaTime) {
     float &pitch = rotation.x;
     float &yaw = rotation.y;
     float &roll = rotation.z;
+
+    if (this->useMouseInput && Input::IsMouseCaptured()) {
+        yaw += this->mouseSensitivity * Input::GetMouseDeltaX();
+        pitch += this->mouseSensitivity * Input::GetMouseDeltaY();
+    }
 
     float rotationSpeed = this->rotationSpeed * deltaTime;
 

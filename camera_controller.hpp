@@ -20,17 +20,20 @@ class CameraController : public Component {
 public:
     float moveSpeed;
     float rotationSpeed;
+    float mouseSensitivity;
+    bool useMouseInput;
 
     CameraController(
         Entity *owner, 
         bool isActive,
         Renderer *renderer, 
-        float moveSpeed     = 5.0f, 
-        float rotationSpeed = 1.0f,
-        float fov           = XM_PIDIV4, 
-        float aspectRatio   = 16.0f / 9.0f, 
-        float nearPlane     = 0.1f, 
-        float farPlane      = 100.0f
+        float moveSpeed        = 8.0f, 
+        float rotationSpeed    = 1.5f,
+        float mouseSensitivity = 0.0015f,
+        float fov              = XM_PIDIV4, 
+        float aspectRatio      = 16.0f / 9.0f, 
+        float nearPlane        = 0.1f, 
+        float farPlane         = 100.0f
     );
     ~CameraController();
 
