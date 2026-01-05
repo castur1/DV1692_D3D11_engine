@@ -141,6 +141,21 @@ void SceneManager::CreateScenes(Renderer *renderer, AssetManager *assetManager) 
     entity = scene->AddEntity();
     entity->AddComponent<Transform>(XMFLOAT3(6.0f, 0.0f, 6.0f), XMFLOAT3(0.0f, -XM_PIDIV4, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
     entity->AddComponent<ModelRenderer>(model);
+    entity->AddComponent<InterpMove>(
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(1.0f, 1.0f, 1.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(0.0f, 0.0f, 0.0f),
+        XMFLOAT3(2.0f, 1.0f, 3.0f),
+        3.0f,
+        1.0f,
+        Easing_function_type::IN_OUT_SINE,
+        true,
+        true,
+        true,
+        false
+    );
 
     model = assetManager->LoadModel("models/stanford_dragon/stanford_dragon.obj");
 

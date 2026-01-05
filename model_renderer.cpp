@@ -42,7 +42,11 @@ void ModelRenderer::Render(Renderer *renderer) {
 
         command.material = material;
 
-        XMStoreFloat4x4(&command.worldMatrix, XMMatrixTranspose(transform->GetWorldMatrix()));
+        XMMATRIX worldMatrix = transform->GetWorldMatrix();
+
+        XMVECTOR determinant;
+        XMStoreFloat4x4(&command.worldMatrixInverseTranspose, XMMatrixInverse(&determinant, worldMatrix));
+        XMStoreFloat4x4(&command.worldMatrix, XMMatrixTranspose(worldMatrix));
 
         renderer->Submit(command);
     }

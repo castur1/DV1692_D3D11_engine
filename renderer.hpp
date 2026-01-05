@@ -23,6 +23,7 @@ struct Draw_command {
     MaterialPtr material;
 
     XMFLOAT4X4 worldMatrix;
+    XMFLOAT4X4 worldMatrixInverseTranspose;
 };
 
 struct Light_source_data {
@@ -37,6 +38,7 @@ struct Light_source_data {
 // cbuffer
 struct Per_object_data {
     XMFLOAT4X4 worldMatrix;
+    XMFLOAT4X4 worldMatrixInverseTranspose;
 };
 
 // cbuffer

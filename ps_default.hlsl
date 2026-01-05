@@ -14,7 +14,8 @@ struct Light_data {
 };
 
 cbuffer Per_object : register(b0) {
-    float4x4 worldMatrix; // TODO: non-uniform scaling will distort normals. "Inverse transpose world matrix"?
+    float4x4 worldMatrix;
+    float4x4 worldMatrixInverseTranspose; 
 }
 
 cbuffer Per_frame : register(b1) {

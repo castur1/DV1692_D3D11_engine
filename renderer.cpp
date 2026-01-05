@@ -399,7 +399,7 @@ void Renderer::Flush() {
     ID3D11Buffer *currentVertexBuffer{};
 
     for (const Draw_command &command : this->drawCommands) {
-        this->UpdatePerObjectBuffer({command.worldMatrix});
+        this->UpdatePerObjectBuffer({command.worldMatrix, command.worldMatrixInverseTranspose});
         this->deviceContext->VSSetConstantBuffers(0, 1, &this->perObjectBuffer);
 
         Pipeline_state *pipelineState = command.material->pipelineState;

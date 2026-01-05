@@ -10,7 +10,8 @@ struct Light_data {
 };
 
 cbuffer Per_object : register(b0) {
-    float4x4 worldMatrix; // TODO: non-uniform scaling will distort normals. "Inverse transpose world matrix"?
+    float4x4 worldMatrix;
+    float4x4 worldMatrixInverseTranspose;
 }
 
 cbuffer Per_frame : register(b1) {
@@ -43,7 +44,7 @@ Vertex_shader_output main(Vertex_shader_input input) {
     position = mul(position, projectionMatrix); // TODO: Combine view and projection matrices
     output.position = position;
     
-    output.normal = normalize(mul(input.normal, (float3x3)worldMatrix));
+    output.normal = mul(input.normal, (float3x3)worldMatrixInverseTranspose);
     output.uv = input.uv;
     
     return output;
